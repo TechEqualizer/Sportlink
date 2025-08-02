@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
 import VideoHero from "../components/shared/VideoHero";
@@ -32,6 +32,8 @@ export default function PlayerProfile() {
   const [activeTab, setActiveTab] = useState("videos"); // Default tab is "overview"
   const [team, setTeam] = useState(null);
   const [videosLoaded, setVideosLoaded] = useState(false); // New state for lazy loading videos
+  const [allAthletes, setAllAthletes] = useState([]);
+  const [currentAthleteIndex, setCurrentAthleteIndex] = useState(0);
 
   useEffect(() => {
     loadPlayerData();
@@ -77,6 +79,11 @@ export default function PlayerProfile() {
       
       console.log("Found athlete:", foundAthlete);
       setAthlete(foundAthlete);
+      setAllAthletes(athleteData);
+      
+      // Find current athlete index for swipe navigation
+      const index = athleteData.findIndex(a => a.id.toString() === athleteId.toString());
+      setCurrentAthleteIndex(index >= 0 ? index : 0);
 
       try {
         const teamData = await Team.list();
@@ -161,6 +168,64 @@ export default function PlayerProfile() {
     }
   };
 
+  const handleSwipeNavigation = (direction) => {
+    if (allAthletes.length === 0) return;
+    
+    let newIndex = currentAthleteIndex;
+    if (direction === 'next' && newIndex < allAthletes.length - 1) {
+      newIndex++;
+    } else if (direction === 'prev' && newIndex > 0) {
+      newIndex--;
+    } else {
+      return; // No navigation possible
+    }
+    
+    const nextAthlete = allAthletes[newIndex];
+    if (nextAthlete) {
+      navigate(`/PlayerProfile?id=${nextAthlete.id}`, { replace: true });
+    }
+  };
+
+  // Add touch event handlers for swipe
+  useEffect(() => {
+    let startX = 0;
+    let startY = 0;
+    const threshold = 100; // Minimum swipe distance
+    const restraint = 100; // Maximum perpendicular distance
+    
+    const handleTouchStart = (e) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    };
+    
+    const handleTouchEnd = (e) => {
+      const endX = e.changedTouches[0].clientX;
+      const endY = e.changedTouches[0].clientY;
+      const distX = endX - startX;
+      const distY = endY - startY;
+      
+      // Check if it's a horizontal swipe
+      if (Math.abs(distX) >= threshold && Math.abs(distY) <= restraint) {
+        if (distX > 0) {
+          handleSwipeNavigation('prev'); // Swipe right = previous
+        } else {
+          handleSwipeNavigation('next'); // Swipe left = next
+        }
+      }
+    };
+    
+    const mainElement = document.querySelector('main');
+    if (mainElement) {
+      mainElement.addEventListener('touchstart', handleTouchStart, { passive: true });
+      mainElement.addEventListener('touchend', handleTouchEnd, { passive: true });
+      
+      return () => {
+        mainElement.removeEventListener('touchstart', handleTouchStart);
+        mainElement.removeEventListener('touchend', handleTouchEnd);
+      };
+    }
+  }, [allAthletes, currentAthleteIndex]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -210,16 +275,43 @@ export default function PlayerProfile() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Back Button */}
-        <div className="mb-6">
+        {/* Navigation Header */}
+        <div className="mb-6 flex items-center justify-between">
           <Button 
             onClick={handleGoBack}
             variant="outline" 
-            className="flex items-center gap-2 hover:bg-gray-100"
+            className="flex items-center gap-2 hover:bg-gray-100 min-h-[44px]"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
           </Button>
+          
+          {/* Swipe Navigation Indicators (Mobile) */}
+          {allAthletes.length > 1 && (
+            <div className="md:hidden flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleSwipeNavigation('prev')}
+                disabled={currentAthleteIndex === 0}
+                className="min-h-[44px] min-w-[44px] p-0"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </Button>
+              <span className="text-sm text-gray-600 px-2">
+                {currentAthleteIndex + 1} of {allAthletes.length}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleSwipeNavigation('next')}
+                disabled={currentAthleteIndex === allAthletes.length - 1}
+                className="min-h-[44px] min-w-[44px] p-0"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

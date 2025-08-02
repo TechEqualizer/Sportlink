@@ -3,8 +3,10 @@ import { Athlete } from "@/api/entities";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Eye, UserX, Search, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, Eye, UserX, Search, ChevronLeft, ChevronRight, Loader2, Filter, X } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { rateLimiter } from "@/components/utils/rateLimiter";
 
 import AthleteCard from "../components/athletes/AthleteCard";
@@ -36,6 +38,8 @@ export default function AthletesPage() {
   const [sortOption, setSortOption] = useState("-updated_date");
   const [currentPage, setCurrentPage] = useState(1);
   const [refetchTrigger, setRefetchTrigger] = useState(0);
+  const [showFilters, setShowFilters] = useState(false);
+  const [globalSearch, setGlobalSearch] = useState("");
 
   // The single, reliable data fetching effect.
   useEffect(() => {
@@ -48,7 +52,7 @@ export default function AthletesPage() {
         if (filters.classYear !== "All") query.class_year = filters.classYear;
         if (filters.recruitingStatus !== "All") query.recruiting_status = filters.recruitingStatus;
         if (filters.sportType !== "All") query.sport_type = filters.sportType;
-        if (filters.name) query.name = { contains: filters.name };
+        if (filters.name || globalSearch) query.name = { contains: filters.name || globalSearch };
         if (filters.minGpa) {
           const minGpaValue = parseFloat(filters.minGpa);
           if (!isNaN(minGpaValue)) query.gpa = { gte: minGpaValue };
@@ -79,12 +83,12 @@ export default function AthletesPage() {
     fetchAthletes();
 
     return () => { isMounted = false; };
-  }, [filters, currentPage, sortOption, refetchTrigger]);
+  }, [filters, currentPage, sortOption, refetchTrigger, globalSearch]);
 
   // Reset to page 1 whenever filters or sorting change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filters, sortOption]);
+  }, [filters, sortOption, globalSearch]);
 
   const handleAddAthlete = async (athleteData) => {
     try {
@@ -124,8 +128,35 @@ export default function AthletesPage() {
 
   if (dataState.status === 'loading') {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8 flex items-center justify-center h-[calc(100vh-10rem)]">
-        <Loader2 className="w-12 h-12 text-gray-400 animate-spin" />
+      <div className="w-full">
+        {/* Header Skeleton */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 md:mb-8">
+          <div className="min-w-0 flex-1">
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <Skeleton className="h-10 w-32" />
+        </div>
+
+        {/* Filters Skeleton */}
+        <div className="mb-6">
+          <Skeleton className="h-20 w-full" />
+        </div>
+
+        {/* Content Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-1">
+            <Skeleton className="h-6 w-32 mb-4" />
+            <div className="space-y-3">
+              {[1, 2, 3, 4, 5].map(i => (
+                <Skeleton key={i} className="h-20 w-full" />
+              ))}
+            </div>
+          </div>
+          <div className="lg:col-span-3">
+            <Skeleton className="h-96 w-full" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -147,7 +178,45 @@ export default function AthletesPage() {
         </Button>
       </div>
 
-      <RosterFilters onFilterChange={setFilters} currentFilters={filters} />
+      {/* Global Search */}
+      <div className="mb-6">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Search athletes by name..."
+            value={globalSearch}
+            onChange={(e) => setGlobalSearch(e.target.value)}
+            className="pl-10 pr-10 min-h-[44px]"
+          />
+          {globalSearch && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setGlobalSearch("")}
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Filter Toggle */}
+      <div className="md:hidden mb-4">
+        <Button
+          variant="outline"
+          onClick={() => setShowFilters(!showFilters)}
+          className="w-full justify-center gap-2 min-h-[44px]"
+        >
+          <Filter className="w-4 h-4" />
+          {showFilters ? 'Hide Filters' : 'Show Filters'}
+        </Button>
+      </div>
+
+      {/* Filters */}
+      <div className={`${showFilters ? 'block' : 'hidden'} md:block`}>
+        <RosterFilters onFilterChange={setFilters} currentFilters={filters} />
+      </div>
       
       {dataState.status === 'error' && (
          <Card className="card-readable p-6 md:p-12 text-center bg-red-50 border-red-200">
@@ -250,6 +319,17 @@ export default function AthletesPage() {
           </div>
         </div>
       )}
+      {/* Floating Action Button */}
+      <div className="fixed bottom-6 right-6 z-50 md:hidden">
+        <Button
+          onClick={() => setShowAddDialog(true)}
+          className="btn-team-primary w-14 h-14 rounded-full shadow-lg hover:shadow-xl transition-shadow"
+          size="icon"
+        >
+          <Plus className="w-6 h-6" />
+        </Button>
+      </div>
+
       <AddAthleteDialog open={showAddDialog} onOpenChange={setShowAddDialog} onAdd={handleAddAthlete} />
       {editingAthlete && (
         <EditAthleteDialog key={editingAthlete.id} open={showEditDialog} onOpenChange={setShowEditDialog} athlete={editingAthlete} onSave={handleUpdateAthlete} />

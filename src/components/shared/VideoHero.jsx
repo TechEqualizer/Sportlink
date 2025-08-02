@@ -7,21 +7,42 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function VideoHero({ videos, athlete, activeCategory }) {
   const [selectedVideo, setSelectedVideo] = useState(videos[0]);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
+  const [videoError, setVideoError] = useState(false);
 
   // Update selected video when category changes or videos change
   React.useEffect(() => {
     if (videos && videos.length > 0 && (!selectedVideo || !videos.find(v => v.id === selectedVideo.id))) {
       setSelectedVideo(videos[0]);
+      setIsVideoLoading(true);
+      setVideoError(false);
     }
   }, [videos, selectedVideo]);
+
+  // Reset loading state when selected video changes
+  React.useEffect(() => {
+    if (selectedVideo) {
+      setIsVideoLoading(true);
+      setVideoError(false);
+    }
+  }, [selectedVideo]);
+
+  const handleVideoLoad = () => {
+    setIsVideoLoading(false);
+    setVideoError(false);
+  };
+
+  const handleVideoError = () => {
+    setIsVideoLoading(false);
+    setVideoError(true);
+  };
 
   const getEmbedUrl = (video) => {
     if (!video) return "";
     
     if (video.source === "youtube") {
       const videoId = video.source_id;
-      return `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&showinfo=1&rel=0`;
+      return `https://www.youtube.com/embed/${videoId}?autoplay=0&controls=1&showinfo=1&rel=0&modestbranding=1`;
     }
     return video.video_url;
   };
@@ -60,12 +81,46 @@ export default function VideoHero({ videos, athlete, activeCategory }) {
         <div className="bg-white rounded-lg overflow-hidden shadow-sm">
           {/* Video Player */}
           <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+            {/* Loading State */}
+            {isVideoLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+                <div className="text-center text-white">
+                  <div className="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-sm">Loading video...</p>
+                </div>
+              </div>
+            )}
+            
+            {/* Error State */}
+            {videoError && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+                <div className="text-center text-white p-6">
+                  <Play className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                  <h3 className="text-lg font-medium mb-2">Video Unavailable</h3>
+                  <p className="text-sm text-gray-300 mb-4">This video could not be loaded. Please try another video.</p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setVideoError(false);
+                      setIsVideoLoading(true);
+                    }}
+                    className="text-white border-white hover:bg-white hover:text-black"
+                  >
+                    Try Again
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <iframe
               src={getEmbedUrl(selectedVideo)}
               title={selectedVideo.title}
               className="absolute inset-0 w-full h-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
+              onLoad={handleVideoLoad}
+              onError={handleVideoError}
+              style={{ display: isVideoLoading || videoError ? 'none' : 'block' }}
             />
           </div>
           
@@ -95,7 +150,7 @@ export default function VideoHero({ videos, athlete, activeCategory }) {
                   exit={{ opacity: 0, y: -20 }}
                 >
                   <div 
-                    className={`cursor-pointer transition-all duration-200 hover:bg-gray-50 rounded-lg p-2 ${
+                    className={`cursor-pointer transition-all duration-200 hover:bg-gray-50 rounded-lg p-2 min-h-[44px] flex items-center ${
                       selectedVideo.id === video.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''
                     }`}
                     onClick={() => setSelectedVideo(video)}

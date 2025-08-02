@@ -2,13 +2,16 @@ import './App.css'
 import Pages from "@/pages/index.jsx"
 import { Toaster } from "@/components/ui/toaster"
 import { TeamThemeProvider } from "@/contexts/TeamThemeContext"
+import { AuthProvider } from "@/contexts/AuthContext"
 
 function App() {
   return (
-    <TeamThemeProvider>
-      <Pages />
-      <Toaster />
-    </TeamThemeProvider>
+    <AuthProvider>
+      <TeamThemeProvider>
+        <Pages />
+        <Toaster />
+      </TeamThemeProvider>
+    </AuthProvider>
   )
 }
 

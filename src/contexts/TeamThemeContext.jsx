@@ -34,24 +34,26 @@ export const TeamThemeProvider = ({ children }) => {
     
     const root = document.documentElement;
     const primaryColor = teamData.primary_color || '#3b82f6';
-    const secondaryColor = teamData.secondary_color || '#64748b';
     
     // Set CSS custom properties for team colors
     root.style.setProperty('--team-primary', primaryColor);
-    root.style.setProperty('--team-secondary', secondaryColor);
     
     // Convert hex to HSL for better color variations
     const primaryHSL = hexToHSL(primaryColor);
-    const secondaryHSL = hexToHSL(secondaryColor);
     
     if (primaryHSL) {
       root.style.setProperty('--team-primary-hsl', `${primaryHSL.h} ${primaryHSL.s}% ${primaryHSL.l}%`);
       root.style.setProperty('--team-primary-hover', `hsl(${primaryHSL.h} ${primaryHSL.s}% ${Math.max(primaryHSL.l - 10, 0)}%)`);
       root.style.setProperty('--team-primary-light', `hsl(${primaryHSL.h} ${primaryHSL.s}% ${Math.min(primaryHSL.l + 20, 95)}%)`);
-    }
-    
-    if (secondaryHSL) {
-      root.style.setProperty('--team-secondary-hsl', `${secondaryHSL.h} ${secondaryHSL.s}% ${secondaryHSL.l}%`);
+      
+      // Generate complementary secondary color based on primary
+      const secondaryL = primaryHSL.l > 50 ? Math.max(primaryHSL.l - 30, 20) : Math.min(primaryHSL.l + 30, 80);
+      const secondaryColor = `hsl(${primaryHSL.h} ${Math.max(primaryHSL.s - 20, 10)}% ${secondaryL}%)`;
+      root.style.setProperty('--team-secondary', secondaryColor);
+      
+      // Text colors based on primary color brightness
+      const textOnPrimary = primaryHSL.l > 50 ? '#000000' : '#ffffff';
+      root.style.setProperty('--team-text-on-primary', textOnPrimary);
     }
   };
 
@@ -69,8 +71,7 @@ export const TeamThemeProvider = ({ children }) => {
     isLoading,
     updateTeam,
     refreshTeam: loadTeamData,
-    primaryColor: team?.primary_color || '#3b82f6',
-    secondaryColor: team?.secondary_color || '#64748b'
+    primaryColor: team?.primary_color || '#3b82f6'
   };
 
   return (
