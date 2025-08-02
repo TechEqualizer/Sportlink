@@ -1,7 +1,5 @@
-
 import React, { useState, useEffect } from "react";
 import { Team } from "@/api/entities";
-import { UploadFile } from "@/api/integrations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,11 +20,23 @@ export default function TeamSettingsPage() {
 
   const loadTeam = async () => {
     setIsLoading(true);
-    const teams = await Team.list();
-    if (teams && teams.length > 0) {
-      setTeam(teams[0]);
-    } else {
-      // Initialize with default values
+    try {
+      const teams = await Team.list();
+      if (teams && teams.length > 0) {
+        setTeam(teams[0]);
+      } else {
+        // Initialize with default values
+        setTeam({ 
+          name: "", 
+          logo_url: "", 
+          primary_color: "#3b82f6", 
+          secondary_color: "#64748b", 
+          school_level: "", 
+          sport_type: "Basketball"
+        });
+      }
+    } catch (error) {
+      console.error("Error loading team:", error);
       setTeam({ 
         name: "", 
         logo_url: "", 
@@ -49,13 +59,23 @@ export default function TeamSettingsPage() {
 
     setIsUploading(true);
     try {
-      const { file_url } = await UploadFile({ file });
-      handleFieldChange("logo_url", file_url);
+      // For demo: Convert file to base64 data URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        handleFieldChange("logo_url", e.target.result);
+        setIsUploading(false);
+      };
+      reader.onerror = () => {
+        console.error("Error reading file");
+        alert("Failed to upload logo.");
+        setIsUploading(false);
+      };
+      reader.readAsDataURL(file);
     } catch (error) {
       console.error("Error uploading file:", error);
       alert("Failed to upload logo.");
+      setIsUploading(false);
     }
-    setIsUploading(false);
   };
   
   const handleSave = async () => {
@@ -67,10 +87,10 @@ export default function TeamSettingsPage() {
         const newTeam = await Team.create(team);
         setTeam(newTeam);
       }
-      alert("Team settings saved successfully! The theme will update on the next page load.");
+      alert("Team settings saved successfully!");
     } catch (error) {
       console.error("Error saving team settings:", error);
-      alert("Failed to save settings.");
+      alert("Failed to save settings. Please try again.");
     }
     setIsSaving(false);
   };
@@ -91,7 +111,7 @@ export default function TeamSettingsPage() {
             <Label htmlFor="team-name">Team Name</Label>
             <Input
               id="team-name"
-              value={team.name}
+              value={team.name || ""}
               onChange={(e) => handleFieldChange("name", e.target.value)}
               placeholder="e.g., Canton Cobras"
             />
@@ -133,7 +153,14 @@ export default function TeamSettingsPage() {
                 <label htmlFor="logo-upload" className="cursor-pointer flex items-center gap-2">
                   {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                   <span>{isUploading ? "Uploading..." : "Upload Logo"}</span>
-                  <input id="logo-upload" type="file" className="hidden" onChange={handleFileUpload} accept="image/*" />
+                  <input 
+                    id="logo-upload" 
+                    type="file" 
+                    className="hidden" 
+                    onChange={handleFileUpload} 
+                    accept="image/*"
+                    disabled={isUploading}
+                  />
                 </label>
               </Button>
             </div>
@@ -145,12 +172,12 @@ export default function TeamSettingsPage() {
               <div className="flex items-center gap-2">
                 <Input
                   id="primary-color"
-                  value={team.primary_color}
+                  value={team.primary_color || "#3b82f6"}
                   onChange={(e) => handleFieldChange("primary_color", e.target.value)}
                 />
                 <input
                   type="color"
-                  value={team.primary_color}
+                  value={team.primary_color || "#3b82f6"}
                   onChange={(e) => handleFieldChange("primary_color", e.target.value)}
                   className="w-10 h-10 rounded-md border border-gray-300 cursor-pointer"
                   title="Choose primary color"
@@ -162,12 +189,12 @@ export default function TeamSettingsPage() {
                <div className="flex items-center gap-2">
                 <Input
                   id="secondary-color"
-                  value={team.secondary_color}
+                  value={team.secondary_color || "#64748b"}
                   onChange={(e) => handleFieldChange("secondary_color", e.target.value)}
                 />
                 <input
                   type="color"
-                  value={team.secondary_color}
+                  value={team.secondary_color || "#64748b"}
                   onChange={(e) => handleFieldChange("secondary_color", e.target.value)}
                   className="w-10 h-10 rounded-md border border-gray-300 cursor-pointer"
                   title="Choose secondary color"
