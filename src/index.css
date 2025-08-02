@@ -156,3 +156,59 @@ button:focus-visible {
     @apply bg-background text-foreground;
   }
 }
+
+
+/* Team Branding System */
+:root {
+  /* Team color variables - dynamically updated by TeamThemeContext */
+  --team-primary: #3b82f6;
+  --team-secondary: #64748b;
+  --team-primary-hsl: 217 91% 60%;
+  --team-primary-hover: #2563eb;
+  --team-primary-light: #dbeafe;
+}
+
+/* Team-branded components */
+.btn-team-primary {
+  background-color: var(--team-primary);
+  border-color: var(--team-primary);
+  color: white;
+}
+
+.btn-team-primary:hover {
+  background-color: var(--team-primary-hover);
+  border-color: var(--team-primary-hover);
+}
+
+.nav-active-team {
+  background-color: var(--team-primary-light);
+  color: var(--team-primary);
+}
+
+.border-team {
+  border-color: var(--team-primary);
+}
+
+.text-team-primary {
+  color: var(--team-primary);
+}
+
+.bg-team-primary {
+  background-color: var(--team-primary);
+}
+
+.bg-team-primary-light {
+  background-color: var(--team-primary-light);
+}
+
+/* Search button styling */
+.search-btn-team {
+  background-color: var(--team-primary) !important;
+  border-color: var(--team-primary) !important;
+}
+
+.search-btn-team:hover {
+  background-color: var(--team-primary-hover) !important;
+  border-color: var(--team-primary-hover) !important;
+}
+

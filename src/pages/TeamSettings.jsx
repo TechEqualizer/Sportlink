@@ -7,8 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2, Upload } from "lucide-react";
 import SportTypeComboBox from "../components/shared/SportTypeComboBox";
+import { useTeamTheme } from "@/contexts/TeamThemeContext";
 
 export default function TeamSettingsPage() {
+  const { updateTeam } = useTeamTheme();
   const [team, setTeam] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -81,12 +83,16 @@ export default function TeamSettingsPage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      let savedTeam;
       if (team.id) {
-        await Team.update(team.id, team);
+        savedTeam = await Team.update(team.id, team);
       } else {
-        const newTeam = await Team.create(team);
-        setTeam(newTeam);
+        savedTeam = await Team.create(team);
+        setTeam(savedTeam);
       }
+      
+      // Automatically apply team colors after saving
+      updateTeam(savedTeam || team);
       alert("Team settings saved successfully!");
     } catch (error) {
       console.error("Error saving team settings:", error);
