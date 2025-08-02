@@ -1,0 +1,76 @@
+// Mock data for local development
+export const mockAthletes = [
+  {
+    id: "1",
+    name: "John Smith",
+    position: "Point Guard",
+    jersey_number: "23",
+    class_year: "Senior",
+    height: "6'2\"",
+    weight: "185 lbs",
+    hometown: "Chicago, IL",
+    high_school: "Lincoln High School",
+    recruiting_status: "Open",
+    sport_type: "Basketball",
+    school_level: "High School",
+    gpa: 3.8,
+    sat_score: 1200,
+    major: "Computer Science",
+    college_interest: ["Duke", "UNC", "Michigan", "Kentucky", "Villanova"],
+    character_traits: ["Team Leader", "Coachable", "High Basketball IQ", "Clutch Performer", "Strong Work Ethic"],
+    achievements: ["2x All-State First Team", "Regional Championship MVP", "School Record: Most Assists (Season)", "Academic Honor Roll", "Team Captain (2 years)"],
+    updated_date: new Date().toISOString()
+  },
+  {
+    id: "2", 
+    name: "Sarah Johnson",
+    position: "Shooting Guard",
+    jersey_number: "15",
+    class_year: "Junior",
+    height: "5'8\"",
+    weight: "150 lbs",
+    hometown: "Los Angeles, CA",
+    high_school: "Hollywood High",
+    recruiting_status: "Committed",
+    sport_type: "Basketball",
+    school_level: "High School",
+    gpa: 3.9,
+    sat_score: 1350,
+    major: "Business",
+    college_interest: ["UCLA", "USC", "Stanford", "Gonzaga", "Oregon"],
+    character_traits: ["Natural Scorer", "Competitive Spirit", "Mentally Tough", "Great Shooter", "Team First Attitude"],
+    achievements: ["All-League First Team", "1,000 Career Points", "League Leading Scorer", "Student-Athlete Award", "Perfect Attendance"],
+    updated_date: new Date().toISOString()
+  },
+  {
+    id: "3",
+    name: "Mike Williams",
+    position: "Center",
+    jersey_number: "33",
+    class_year: "Sophomore", 
+    height: "6'8\"",
+    weight: "220 lbs",
+    hometown: "Houston, TX",
+    high_school: "Central High",
+    recruiting_status: "Verbal",
+    sport_type: "Basketball",
+    school_level: "High School",
+    gpa: 3.5,
+    sat_score: 1100,
+    major: "Engineering",
+    college_interest: ["Texas", "Rice", "Houston", "Baylor", "Texas A&M"],
+    character_traits: ["Dominant Presence", "Shot Blocker", "Reliable", "Hard Worker", "Developing Leader"],
+    achievements: ["District Defensive Player of Year", "All-Region Team", "Double-Double Average", "Honor Roll Student", "Community Service Award"],
+    updated_date: new Date().toISOString()
+  }
+];
+
+export const mockTeam = {
+  id: "team1",
+  name: "Lincoln Eagles",
+  sport_type: "Basketball",
+  school_level: "High School",
+  primary_color: "#1e40af",
+  secondary_color: "#f59e0b",
+  logo_url: null
+};
