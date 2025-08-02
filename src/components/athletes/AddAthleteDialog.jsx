@@ -202,8 +202,7 @@ export default function AddAthleteDialog({ open, onOpenChange, onAdd }) {
           <Button 
             type="submit"
             form="add-athlete-form"
-            style={{ backgroundColor: 'var(--primary-color)' }} 
-            className="text-white hover:opacity-90"
+            className="btn-team-primary"
             disabled={isSubmitting}
           >
             {isSubmitting ? "Adding..." : "Add Athlete"}
