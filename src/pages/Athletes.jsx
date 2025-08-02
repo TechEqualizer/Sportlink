@@ -131,36 +131,43 @@ export default function AthletesPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="w-full">
       {/* Header and Add Athlete Button */}
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Team Roster</h1>
-          <p className="text-gray-600 mt-1">Manage athlete profiles and recruiting status</p>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 md:mb-8">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl md:text-3xl font-bold text-high-contrast">Team Roster</h1>
+          <p className="text-medium-contrast mt-1 text-sm md:text-base">Manage athlete profiles and recruiting status</p>
         </div>
-        <Button onClick={() => setShowAddDialog(true)} style={{ backgroundColor: 'var(--primary-color)' }} className="text-white hover:opacity-90">
-          <Plus className="w-4 h-4 mr-2" /> Add Athlete
+        <Button 
+          onClick={() => setShowAddDialog(true)} 
+          className="btn-team-primary mobile-full-width sm:w-auto"
+        >
+          <Plus className="w-4 h-4 mr-2" /> 
+          <span>Add Athlete</span>
         </Button>
       </div>
 
       <RosterFilters onFilterChange={setFilters} currentFilters={filters} />
       
       {dataState.status === 'error' && (
-         <Card className="p-12 text-center bg-red-50 border-red-200">
+         <Card className="card-readable p-6 md:p-12 text-center bg-red-50 border-red-200">
             <CardContent className="flex flex-col items-center p-0">
-                <h2 className="text-xl font-semibold mb-2 text-red-700">Error Loading Data</h2>
-                <p className="text-red-600">{dataState.error}</p>
+                <h2 className="text-lg md:text-xl font-semibold mb-2 text-red-700">Error Loading Data</h2>
+                <p className="text-red-600 text-sm md:text-base">{dataState.error}</p>
             </CardContent>
          </Card>
       )}
 
       {dataState.status === 'success' && dataState.total === 0 && !isAnyFilterActive() && (
-        <Card className="p-12 text-center">
+        <Card className="card-readable p-6 md:p-12 text-center">
           <CardContent className="flex flex-col items-center p-0">
-            <UserX className="w-16 h-16 text-gray-300 mb-4" />
-            <h2 className="text-xl font-semibold mb-2">No Athletes Yet</h2>
-            <p className="text-gray-600 mb-4">It looks like your roster is empty. Start by adding your first athlete!</p>
-            <Button onClick={() => setShowAddDialog(true)} style={{ backgroundColor: 'var(--primary-color)' }} className="text-white hover:opacity-90">
+            <UserX className="w-12 h-12 md:w-16 md:h-16 text-gray-300 mb-4" />
+            <h2 className="text-lg md:text-xl font-semibold mb-2 text-high-contrast">No Athletes Yet</h2>
+            <p className="text-medium-contrast mb-4 text-sm md:text-base">It looks like your roster is empty. Start by adding your first athlete!</p>
+            <Button 
+              onClick={() => setShowAddDialog(true)} 
+              className="btn-team-primary"
+            >
               <Plus className="w-4 h-4 mr-2" /> Add Athlete
             </Button>
           </CardContent>
@@ -168,11 +175,11 @@ export default function AthletesPage() {
       )}
       
       {dataState.status === 'success' && dataState.athletes.length === 0 && isAnyFilterActive() && (
-         <Card className="p-12 text-center">
+         <Card className="card-readable p-6 md:p-12 text-center">
           <CardContent className="flex flex-col items-center p-0">
-            <Search className="w-16 h-16 text-gray-300 mb-4" />
-            <h2 className="text-xl font-semibold mb-2">No Athletes Found</h2>
-            <p className="text-gray-600">Your current filter settings returned no athletes. Try adjusting your search or filters.</p>
+            <Search className="w-12 h-12 md:w-16 md:h-16 text-gray-300 mb-4" />
+            <h2 className="text-lg md:text-xl font-semibold mb-2 text-high-contrast">No Athletes Found</h2>
+            <p className="text-medium-contrast text-sm md:text-base">Your current filter settings returned no athletes. Try adjusting your search or filters.</p>
           </CardContent>
          </Card>
       )}

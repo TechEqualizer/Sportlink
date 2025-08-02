@@ -70,15 +70,15 @@ export default function RosterFilters({ onFilterChange, currentFilters }) {
     };
 
     return (
-        <Card className="mb-8 bg-white/80 backdrop-blur-sm">
-            <CardHeader className="pb-4">
-                <CardTitle className="text-lg">Filters</CardTitle>
+        <Card className="card-readable mb-6 md:mb-8 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="pb-4 responsive-padding">
+                <CardTitle className="text-lg md:text-xl text-high-contrast">Filters</CardTitle>
             </CardHeader>
-            <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+            <CardContent className="responsive-padding">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
                     {/* Name Filter with Search Button */}
-                    <div className="space-y-1">
-                        <Label htmlFor="name-filter">Name</Label>
+                    <div className="space-y-1 sm:col-span-2 lg:col-span-1">
+                        <Label htmlFor="name-filter" className="label-readable">Name</Label>
                         <div className="flex gap-1">
                             <Input
                                 id="name-filter"
@@ -87,16 +87,16 @@ export default function RosterFilters({ onFilterChange, currentFilters }) {
                                 value={searchInputs.name}
                                 onChange={(e) => handleSearchInputChange("name", e.target.value)}
                                 onKeyPress={handleKeyPress}
-                                className="flex-1"
+                                className="input-readable flex-1"
                             />
                         </div>
                     </div>
 
                     {/* Class Year Filter */}
                     <div className="space-y-1">
-                        <Label htmlFor="class-year-filter">Class Year</Label>
+                        <Label htmlFor="class-year-filter" className="label-readable">Class Year</Label>
                         <Select value={appliedFilters.classYear} onValueChange={(value) => handleDropdownChange("classYear", value)}>
-                            <SelectTrigger id="class-year-filter"><SelectValue placeholder="All Years" /></SelectTrigger>
+                            <SelectTrigger id="class-year-filter" className="input-readable"><SelectValue placeholder="All Years" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="All">All Years</SelectItem>
                                 <SelectItem value="Freshman">Freshman</SelectItem>
@@ -109,7 +109,7 @@ export default function RosterFilters({ onFilterChange, currentFilters }) {
 
                     {/* Sport Type Filter */}
                     <div className="space-y-1">
-                        <Label htmlFor="sport-type-filter">Sport</Label>
+                        <Label htmlFor="sport-type-filter" className="label-readable">Sport</Label>
                         <SportTypeComboBox 
                             value={appliedFilters.sportType} 
                             onValueChange={(value) => handleDropdownChange("sportType", value === "All" ? "All" : value)} 
@@ -119,9 +119,9 @@ export default function RosterFilters({ onFilterChange, currentFilters }) {
 
                     {/* Recruiting Status Filter */}
                     <div className="space-y-1">
-                        <Label htmlFor="recruiting-status-filter">Recruiting Status</Label>
+                        <Label htmlFor="recruiting-status-filter" className="label-readable">Recruiting Status</Label>
                         <Select value={appliedFilters.recruitingStatus} onValueChange={(value) => handleDropdownChange("recruitingStatus", value)}>
-                            <SelectTrigger id="recruiting-status-filter"><SelectValue placeholder="All Statuses" /></SelectTrigger>
+                            <SelectTrigger id="recruiting-status-filter" className="input-readable"><SelectValue placeholder="All Statuses" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="All">All Statuses</SelectItem>
                                 <SelectItem value="Open">Open</SelectItem>
@@ -133,7 +133,7 @@ export default function RosterFilters({ onFilterChange, currentFilters }) {
 
                     {/* GPA Filter with Search Button */}
                     <div className="space-y-1">
-                        <Label htmlFor="gpa-filter">Min. GPA</Label>
+                        <Label htmlFor="gpa-filter" className="label-readable">Min. GPA</Label>
                         <Input
                             id="gpa-filter"
                             type="number"
@@ -142,19 +142,28 @@ export default function RosterFilters({ onFilterChange, currentFilters }) {
                             value={searchInputs.minGpa}
                             onChange={(e) => handleSearchInputChange("minGpa", e.target.value)}
                             onKeyPress={handleKeyPress}
+                            className="input-readable"
                         />
                     </div>
                     
                     {/* Action Buttons */}
-                    <div className="space-y-1">
-                        <Label className="invisible">Actions</Label>
-                        <div className="flex gap-1">
-                            <Button onClick={handleSearch} className="flex-1 h-10 bg-blue-600 hover:bg-blue-700">
-                                <Search className="w-4 h-4 mr-1" />
-                                Search
+                    <div className="space-y-1 sm:col-span-2 lg:col-span-1">
+                        <Label className="invisible label-readable">Actions</Label>
+                        <div className="flex gap-2 mobile-stack sm:flex-row">
+                            <Button 
+                                onClick={handleSearch} 
+                                className="btn-team-primary flex-1 mobile-full-width"
+                            >
+                                <Search className="w-4 h-4 mr-2" />
+                                <span>Search</span>
                             </Button>
-                            <Button variant="ghost" onClick={resetFilters} className="h-10 px-3">
+                            <Button 
+                                variant="ghost" 
+                                onClick={resetFilters} 
+                                className="btn-team-secondary mobile-full-width sm:w-auto"
+                            >
                                 <X className="w-4 h-4" />
+                                <span className="sm:hidden ml-2">Reset</span>
                             </Button>
                         </div>
                     </div>
