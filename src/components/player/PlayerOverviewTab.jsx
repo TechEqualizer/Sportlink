@@ -1,9 +1,13 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Star, MessageSquare } from "lucide-react";
+import { Trophy, Star, MessageSquare, TrendingUp } from "lucide-react";
+import { mockSeasonStats } from "@/api/mockData";
 
 export default function PlayerOverviewTab({ athlete }) {
+  const stats = mockSeasonStats[athlete.id] || {};
+  const currentSeason = stats.currentSeason || {};
+  
   const statusColors = {
     Open: "bg-green-500 text-white",
     Committed: "bg-blue-500 text-white", 
@@ -127,6 +131,43 @@ export default function PlayerOverviewTab({ athlete }) {
             <div className="text-center py-6 text-gray-500">
               <MessageSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
               <p>No coach notes available</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Season Performance */}
+      <Card className="lg:col-span-2">
+        <CardHeader>
+          <CardTitle className="text-lg font-bold flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-team-primary" />
+            Season Performance
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {currentSeason && Object.keys(currentSeason).length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-team-primary">{currentSeason.ppg || "0.0"}</div>
+                <div className="text-sm text-gray-600 font-medium">PPG</div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">{currentSeason.apg || "0.0"}</div>
+                <div className="text-sm text-gray-600 font-medium">APG</div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-purple-600">{currentSeason.rpg || "0.0"}</div>
+                <div className="text-sm text-gray-600 font-medium">RPG</div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-orange-600">{currentSeason.fg_percentage || "0.0"}%</div>
+                <div className="text-sm text-gray-600 font-medium">FG%</div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <TrendingUp className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+              <p>No season statistics available</p>
             </div>
           )}
         </CardContent>
