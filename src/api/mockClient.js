@@ -134,6 +134,41 @@ const createMockTeam = () => ({
     await new Promise(resolve => setTimeout(resolve, 200));
     
     return [mockTeam];
+  },
+  
+  create: async (teamData) => {
+    console.log('Mock Team.create called with:', teamData);
+    
+    const newTeam = {
+      id: Date.now().toString(),
+      ...teamData,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    // Update the mockTeam object
+    Object.assign(mockTeam, newTeam);
+    
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    return newTeam;
+  },
+  
+  update: async (id, teamData) => {
+    console.log('Mock Team.update called with:', { id, teamData });
+    
+    const updatedTeam = {
+      ...mockTeam,
+      ...teamData,
+      updated_at: new Date().toISOString()
+    };
+    
+    // Update the mockTeam object
+    Object.assign(mockTeam, updatedTeam);
+    
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    return updatedTeam;
   }
 });
 
