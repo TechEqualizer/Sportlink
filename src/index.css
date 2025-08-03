@@ -169,6 +169,16 @@ button:focus-visible {
   --team-primary-dark: #1e40af;
   --team-text-on-primary: #ffffff;
   --team-text-contrast: #1f2937;
+  
+  /* Design System Contrast Standards */
+  /* WCAG AA: 4.5:1 for normal text, 3:1 for large text (18px+ or 14px+ bold) */
+  --contrast-min-normal: 4.5;
+  --contrast-min-large: 3;
+  
+  /* Accessible color combinations */
+  --accessible-hover-bg: var(--team-primary-light);
+  --accessible-hover-text: var(--team-primary);
+  --accessible-focus-ring: var(--team-primary);
 }
 
 /* Mobile-first responsive design */
@@ -439,6 +449,65 @@ button:focus-visible {
 }
 
 .text-low-contrast {
+  color: #6b7280;
+  font-weight: 400;
+}
+
+/* Accessible Hover States - Design System Rules */
+/* 
+  DESIGN SYSTEM GUIDELINES:
+  1. Always use team-primary-light for hover backgrounds - ensures proper contrast
+  2. Pair with team-primary text color for consistent branding
+  3. Minimum contrast ratios: 4.5:1 for normal text, 3:1 for large text
+  4. Test all hover states with different team colors before deployment
+*/
+.hover-accessible {
+  transition: all 0.2s ease-in-out;
+}
+
+.hover-accessible:hover {
+  background-color: var(--accessible-hover-bg);
+  color: var(--accessible-hover-text);
+}
+
+/* Navigation-specific accessible hover */
+.nav-hover-accessible {
+  color: var(--text-medium-contrast, #374151);
+  transition: all 0.2s ease-in-out;
+}
+
+.nav-hover-accessible:hover {
+  background-color: var(--team-primary-light);
+  color: var(--team-primary);
+}
+
+/* Button accessible hover patterns */
+.btn-hover-accessible {
+  background-color: transparent;
+  border: 2px solid var(--team-primary);
+  color: var(--team-primary);
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-hover-accessible:hover {
+  background-color: var(--team-primary);
+  color: var(--team-text-on-primary);
+}
+
+/* Focus states for accessibility compliance */
+.focus-accessible:focus-visible {
+  outline: 2px solid var(--accessible-focus-ring);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+/* Text contrast utilities */
+.text-contrast-safe {
+  color: var(--team-text-contrast);
+  font-weight: 500;
+}
+
+.text-contrast-safe-light {
   color: #6b7280;
   font-weight: 400;
 }

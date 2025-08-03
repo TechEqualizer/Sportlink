@@ -109,7 +109,7 @@ export default function Layout({ children, currentPageName }) {
                         className={`nav-item-team flex items-center gap-2 px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-medium transition-all min-h-[44px] ${
                           location.pathname === item.url
                             ? "nav-active-team"
-                            : "text-medium-contrast hover:text-team-primary hover:bg-gray-50"
+                            : "text-medium-contrast hover:text-team-primary hover:bg-team-primary-light"
                         }`}
                       >
                         <item.icon className="w-4 h-4" />
@@ -174,7 +174,7 @@ export default function Layout({ children, currentPageName }) {
                           className={`mobile-nav-item flex items-center gap-4 px-4 py-3 rounded-lg text-lg font-medium transition-colors min-h-[50px] ${
                             location.pathname === item.url
                               ? "bg-team-primary-light text-team-primary"
-                              : "text-medium-contrast hover:bg-gray-50 hover:text-team-primary"
+                              : "text-medium-contrast hover:bg-team-primary-light hover:text-team-primary"
                           }`}
                         >
                           <item.icon className="w-6 h-6" />
