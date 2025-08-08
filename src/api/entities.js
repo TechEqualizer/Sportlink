@@ -9,6 +9,8 @@ const isDevelopment = import.meta.env.DEV;
 export const Athlete = mockEntities.Athlete;
 export const Video = mockEntities.Video;  
 export const Team = mockEntities.Team;
+export const Game = mockEntities.Game;
+export const GamePerformance = mockEntities.GamePerformance;
 
 // auth sdk:
 export const User = base44.auth;

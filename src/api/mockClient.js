@@ -235,9 +235,209 @@ const createMockVideo = () => ({
   }
 });
 
+const createMockGame = () => ({
+  create: async (data) => {
+    const id = Date.now().toString();
+    const newGame = {
+      id,
+      ...data,
+      created_date: new Date().toISOString(),
+      updated_date: new Date().toISOString()
+    };
+    const games = JSON.parse(localStorage.getItem('mock_games') || '[]');
+    games.push(newGame);
+    localStorage.setItem('mock_games', JSON.stringify(games));
+    
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return newGame;
+  },
+  
+  list: async (sortBy = '-date') => {
+    const games = JSON.parse(localStorage.getItem('mock_games') || '[]');
+    const sortedGames = [...games].sort((a, b) => {
+      const field = sortBy.replace('-', '');
+      const order = sortBy.startsWith('-') ? -1 : 1;
+      if (field === 'date') {
+        return order * (new Date(a.date) - new Date(b.date));
+      }
+      return order * (a[field] > b[field] ? 1 : -1);
+    });
+    
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return sortedGames;
+  },
+  
+  get: async (id) => {
+    const games = JSON.parse(localStorage.getItem('mock_games') || '[]');
+    await new Promise(resolve => setTimeout(resolve, 100));
+    return games.find(g => g.id === id);
+  },
+  
+  update: async (id, data) => {
+    const games = JSON.parse(localStorage.getItem('mock_games') || '[]');
+    const index = games.findIndex(g => g.id === id);
+    if (index !== -1) {
+      games[index] = {
+        ...games[index],
+        ...data,
+        updated_date: new Date().toISOString()
+      };
+      localStorage.setItem('mock_games', JSON.stringify(games));
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return games[index];
+    }
+    throw new Error('Game not found');
+  },
+  
+  delete: async (id) => {
+    const games = JSON.parse(localStorage.getItem('mock_games') || '[]');
+    const filtered = games.filter(g => g.id !== id);
+    localStorage.setItem('mock_games', JSON.stringify(filtered));
+    
+    // Also delete associated performances
+    const performances = JSON.parse(localStorage.getItem('mock_gamePerformances') || '[]');
+    const filteredPerfs = performances.filter(p => p.game_id !== id);
+    localStorage.setItem('mock_gamePerformances', JSON.stringify(filteredPerfs));
+    
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return { success: true };
+  },
+  
+  filter: async (query = {}, sortBy = '-date', limit = 50, offset = 0) => {
+    let games = JSON.parse(localStorage.getItem('mock_games') || '[]');
+    
+    // Apply filters
+    if (query.season) {
+      games = games.filter(g => g.season === query.season);
+    }
+    if (query.opponent && query.opponent.contains) {
+      games = games.filter(g => g.opponent.toLowerCase().includes(query.opponent.contains.toLowerCase()));
+    }
+    if (query.date_gte) {
+      games = games.filter(g => new Date(g.date) >= new Date(query.date_gte));
+    }
+    if (query.date_lte) {
+      games = games.filter(g => new Date(g.date) <= new Date(query.date_lte));
+    }
+    
+    // Sort
+    const sortedGames = [...games].sort((a, b) => {
+      const field = sortBy.replace('-', '');
+      const order = sortBy.startsWith('-') ? -1 : 1;
+      if (field === 'date') {
+        return order * (new Date(a.date) - new Date(b.date));
+      }
+      return order * (a[field] > b[field] ? 1 : -1);
+    });
+    
+    // Paginate
+    const paginatedGames = sortedGames.slice(offset, offset + limit);
+    
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return { data: paginatedGames, total: games.length };
+  }
+});
+
+const createMockGamePerformance = () => ({
+  create: async (data) => {
+    const id = Date.now().toString();
+    const newPerformance = {
+      id,
+      ...data,
+      created_date: new Date().toISOString(),
+      updated_date: new Date().toISOString()
+    };
+    const performances = JSON.parse(localStorage.getItem('mock_gamePerformances') || '[]');
+    performances.push(newPerformance);
+    localStorage.setItem('mock_gamePerformances', JSON.stringify(performances));
+    
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return newPerformance;
+  },
+  
+  createBatch: async (performancesData) => {
+    const performances = JSON.parse(localStorage.getItem('mock_gamePerformances') || '[]');
+    const newPerformances = performancesData.map((data, index) => ({
+      id: (Date.now() + index).toString(),
+      ...data,
+      created_date: new Date().toISOString(),
+      updated_date: new Date().toISOString()
+    }));
+    performances.push(...newPerformances);
+    localStorage.setItem('mock_gamePerformances', JSON.stringify(performances));
+    
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return newPerformances;
+  },
+  
+  list: async () => {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return JSON.parse(localStorage.getItem('mock_gamePerformances') || '[]');
+  },
+  
+  get: async (id) => {
+    const performances = JSON.parse(localStorage.getItem('mock_gamePerformances') || '[]');
+    await new Promise(resolve => setTimeout(resolve, 100));
+    return performances.find(p => p.id === id);
+  },
+  
+  update: async (id, data) => {
+    const performances = JSON.parse(localStorage.getItem('mock_gamePerformances') || '[]');
+    const index = performances.findIndex(p => p.id === id);
+    if (index !== -1) {
+      performances[index] = {
+        ...performances[index],
+        ...data,
+        updated_date: new Date().toISOString()
+      };
+      localStorage.setItem('mock_gamePerformances', JSON.stringify(performances));
+      await new Promise(resolve => setTimeout(resolve, 200));
+      return performances[index];
+    }
+    throw new Error('Performance not found');
+  },
+  
+  delete: async (id) => {
+    const performances = JSON.parse(localStorage.getItem('mock_gamePerformances') || '[]');
+    const filtered = performances.filter(p => p.id !== id);
+    localStorage.setItem('mock_gamePerformances', JSON.stringify(filtered));
+    
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return { success: true };
+  },
+  
+  filter: async (query = {}) => {
+    let performances = JSON.parse(localStorage.getItem('mock_gamePerformances') || '[]');
+    
+    if (query.game_id) {
+      performances = performances.filter(p => p.game_id === query.game_id);
+    }
+    if (query.athlete_id) {
+      performances = performances.filter(p => p.athlete_id === query.athlete_id);
+    }
+    
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return performances;
+  },
+  
+  getByGame: async (gameId) => {
+    const performances = JSON.parse(localStorage.getItem('mock_gamePerformances') || '[]');
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return performances.filter(p => p.game_id === gameId);
+  },
+  
+  getByAthlete: async (athleteId) => {
+    const performances = JSON.parse(localStorage.getItem('mock_gamePerformances') || '[]');
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return performances.filter(p => p.athlete_id === athleteId);
+  }
+});
+
 // Export mock entities
 export const mockEntities = {
   Athlete: createMockAthlete(),
   Team: createMockTeam(),
-  Video: createMockVideo()
+  Video: createMockVideo(),
+  Game: createMockGame(),
+  GamePerformance: createMockGamePerformance()
 };

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Menu, Users, BarChart3, Home, Settings, LogOut, User } from "lucide-react";
+import { Menu, Users, BarChart3, Home, Settings, LogOut, User, Trophy } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -34,6 +34,11 @@ export default function Layout({ children, currentPageName }) {
       title: "Athletes",
       url: createPageUrl("Athletes"),
       icon: Users,
+    },
+    {
+      title: "Games",
+      url: createPageUrl("Games"),
+      icon: Trophy,
     },
     {
       title: "Statistics", 

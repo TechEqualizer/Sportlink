@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { TrendingUp, Activity, Target, Award } from "lucide-react";
 import { mockSeasonStats, mockPerformanceData } from "@/api/mockData";
+import { Game, GamePerformance } from "@/api/entities";
+import { format } from "date-fns";
 
 const StatRow = ({ label, value, suffix = "" }) => (
   <div className="flex justify-between py-2 border-b border-gray-100">
@@ -32,6 +34,10 @@ const GameRow = ({ game }) => (
 );
 
 export default function PlayerStatisticsTab({ athlete }) {
+  const [actualGames, setActualGames] = useState([]);
+  const [actualPerformances, setActualPerformances] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
   const stats = mockSeasonStats[athlete.id] || {};
   const performanceData = mockPerformanceData[athlete.id] || {};
   
@@ -42,11 +48,91 @@ export default function PlayerStatisticsTab({ athlete }) {
   const monthlyAverages = performanceData.monthlyAverages || [];
   const shootingTrends = performanceData.shootingTrends || [];
 
+  useEffect(() => {
+    loadActualGames();
+  }, [athlete.id]);
+
+  const loadActualGames = async () => {
+    setIsLoading(true);
+    try {
+      // Load all performances for this athlete
+      const performances = await GamePerformance.getByAthlete(athlete.id);
+      setActualPerformances(performances);
+      
+      // Load game details for each performance
+      const gamePromises = performances.map(perf => Game.get(perf.game_id));
+      const games = await Promise.all(gamePromises);
+      
+      // Combine game and performance data
+      const gamesWithStats = games.map((game, index) => ({
+        ...game,
+        stats: performances[index]
+      })).sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      setActualGames(gamesWithStats);
+    } catch (error) {
+      console.error("Error loading games:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Calculate actual season stats from real games
+  const calculateSeasonStats = () => {
+    if (actualPerformances.length === 0) return currentSeason;
+    
+    const totals = actualPerformances.reduce((acc, perf) => ({
+      points: acc.points + (perf.points || 0),
+      rebounds: acc.rebounds + (perf.rebounds || 0),
+      assists: acc.assists + (perf.assists || 0),
+      steals: acc.steals + (perf.steals || 0),
+      blocks: acc.blocks + (perf.blocks || 0),
+      minutes: acc.minutes + (perf.minutes || 0),
+      field_goals_made: acc.field_goals_made + (perf.field_goals_made || 0),
+      field_goals_attempted: acc.field_goals_attempted + (perf.field_goals_attempted || 0),
+      three_pointers_made: acc.three_pointers_made + (perf.three_pointers_made || 0),
+      three_pointers_attempted: acc.three_pointers_attempted + (perf.three_pointers_attempted || 0),
+      free_throws_made: acc.free_throws_made + (perf.free_throws_made || 0),
+      free_throws_attempted: acc.free_throws_attempted + (perf.free_throws_attempted || 0),
+    }), {
+      points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, minutes: 0,
+      field_goals_made: 0, field_goals_attempted: 0,
+      three_pointers_made: 0, three_pointers_attempted: 0,
+      free_throws_made: 0, free_throws_attempted: 0
+    });
+    
+    const gamesPlayed = actualPerformances.length;
+    
+    return {
+      gamesPlayed,
+      ppg: (totals.points / gamesPlayed).toFixed(1),
+      rpg: (totals.rebounds / gamesPlayed).toFixed(1),
+      apg: (totals.assists / gamesPlayed).toFixed(1),
+      spg: (totals.steals / gamesPlayed).toFixed(1),
+      bpg: (totals.blocks / gamesPlayed).toFixed(1),
+      minutes: (totals.minutes / gamesPlayed).toFixed(1),
+      fg_percentage: totals.field_goals_attempted > 0 
+        ? ((totals.field_goals_made / totals.field_goals_attempted) * 100).toFixed(1)
+        : 0,
+      three_percentage: totals.three_pointers_attempted > 0
+        ? ((totals.three_pointers_made / totals.three_pointers_attempted) * 100).toFixed(1)
+        : 0,
+      ft_percentage: totals.free_throws_attempted > 0
+        ? ((totals.free_throws_made / totals.free_throws_attempted) * 100).toFixed(1)
+        : 0
+    };
+  };
+
+  const actualSeasonStats = calculateSeasonStats();
+
+  // Use actual stats if available, otherwise fall back to mock data
+  const displayStats = actualPerformances.length > 0 ? actualSeasonStats : currentSeason;
+  
   const keyStats = [
-    { label: "PPG", value: currentSeason.ppg || 0, color: "text-blue-600", icon: Target },
-    { label: "APG", value: currentSeason.apg || 0, color: "text-green-600", icon: Activity },
-    { label: "RPG", value: currentSeason.rpg || 0, color: "text-purple-600", icon: Award },
-    { label: "FG%", value: currentSeason.fg_percentage || 0, color: "text-orange-600", icon: TrendingUp, isPercentage: true },
+    { label: "PPG", value: displayStats.ppg || 0, color: "text-blue-600", icon: Target },
+    { label: "APG", value: displayStats.apg || 0, color: "text-green-600", icon: Activity },
+    { label: "RPG", value: displayStats.rpg || 0, color: "text-purple-600", icon: Award },
+    { label: "FG%", value: displayStats.fg_percentage || 0, color: "text-orange-600", icon: TrendingUp, isPercentage: true },
   ];
 
   return (
@@ -77,10 +163,28 @@ export default function PlayerStatisticsTab({ athlete }) {
       {/* Recent Games Performance */}
       <Card className="card-readable">
         <CardHeader>
-          <CardTitle className="text-lg md:text-xl text-high-contrast">Recent Games</CardTitle>
+          <CardTitle className="text-lg md:text-xl text-high-contrast">
+            {actualGames.length > 0 ? "Actual Games" : "Recent Games"}
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          {recentGames.length > 0 ? (
+          {actualGames.length > 0 ? (
+            <div className="space-y-1">
+              {actualGames.slice(0, 5).map((game) => (
+                <GameRow 
+                  key={game.id} 
+                  game={{
+                    opponent: game.opponent,
+                    date: game.date,
+                    points: game.stats.points,
+                    assists: game.stats.assists,
+                    rebounds: game.stats.rebounds,
+                    result: `${game.team_score > game.opponent_score ? 'W' : 'L'} ${game.team_score}-${game.opponent_score}`
+                  }} 
+                />
+              ))}
+            </div>
+          ) : recentGames.length > 0 ? (
             <div className="space-y-1">
               {recentGames.slice(0, 5).map((game, index) => (
                 <GameRow key={index} game={game} />
@@ -233,14 +337,14 @@ export default function PlayerStatisticsTab({ athlete }) {
           </CardHeader>
           <CardContent>
             <div className="space-y-1">
-              <StatRow label="Games Played" value={currentSeason.gamesPlayed || 0} />
-              <StatRow label="Minutes" value={currentSeason.minutes || "0.0"} suffix=" MPG" />
-              <StatRow label="Points" value={currentSeason.ppg || "0.0"} suffix=" PPG" />
-              <StatRow label="Assists" value={currentSeason.apg || "0.0"} suffix=" APG" />
-              <StatRow label="Rebounds" value={currentSeason.rpg || "0.0"} suffix=" RPG" />
-              <StatRow label="Steals" value={currentSeason.spg || "0.0"} suffix=" SPG" />
-              <StatRow label="Blocks" value={currentSeason.bpg || "0.0"} suffix=" BPG" />
-              <StatRow label="Turnovers" value={currentSeason.turnovers || "0.0"} suffix=" TPG" />
+              <StatRow label="Games Played" value={displayStats.gamesPlayed || 0} />
+              <StatRow label="Minutes" value={displayStats.minutes || "0.0"} suffix=" MPG" />
+              <StatRow label="Points" value={displayStats.ppg || "0.0"} suffix=" PPG" />
+              <StatRow label="Assists" value={displayStats.apg || "0.0"} suffix=" APG" />
+              <StatRow label="Rebounds" value={displayStats.rpg || "0.0"} suffix=" RPG" />
+              <StatRow label="Steals" value={displayStats.spg || "0.0"} suffix=" SPG" />
+              <StatRow label="Blocks" value={displayStats.bpg || "0.0"} suffix=" BPG" />
+              <StatRow label="Turnovers" value={displayStats.turnovers || "0.0"} suffix=" TPG" />
             </div>
           </CardContent>
         </Card>
