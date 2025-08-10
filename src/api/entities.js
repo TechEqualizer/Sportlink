@@ -11,6 +11,7 @@ export const Video = mockEntities.Video;
 export const Team = mockEntities.Team;
 export const Game = mockEntities.Game;
 export const GamePerformance = mockEntities.GamePerformance;
+export const Benchmark = mockEntities.Benchmark;
 
 // auth sdk:
 export const User = base44.auth;

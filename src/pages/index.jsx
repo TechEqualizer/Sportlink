@@ -12,6 +12,8 @@ const TeamSettings = lazy(() => import("./TeamSettings"));
 const Auth = lazy(() => import("./Auth"));
 const Games = lazy(() => import("./Games"));
 const GameEntry = lazy(() => import("./GameEntry"));
+const Demo = lazy(() => import("./Demo"));
+const PlayerDashboard = lazy(() => import("./PlayerDashboard"));
 
 const PAGES = {
     Athletes: Athletes,
@@ -21,6 +23,8 @@ const PAGES = {
     Auth: Auth,
     Games: Games,
     GameEntry: GameEntry,
+    Demo: Demo,
+    PlayerDashboard: PlayerDashboard,
 }
 
 function _getCurrentPage(url) {
@@ -54,6 +58,8 @@ function PagesContent() {
                         <Route path="/Games" element={<Games />} />
                         <Route path="/game/new" element={<GameEntry />} />
                         <Route path="/game/:id" element={<GameEntry />} />
+                        <Route path="/demo" element={<Demo />} />
+                        <Route path="/performance-review" element={<PlayerDashboard />} />
                     </Routes>
                 </Suspense>
             </ErrorBoundary>

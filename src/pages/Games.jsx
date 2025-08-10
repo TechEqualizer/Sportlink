@@ -16,7 +16,8 @@ import {
   Trash,
   ChevronLeft,
   ChevronRight,
-  X
+  X,
+  Sparkles
 } from "lucide-react";
 import { format } from "date-fns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -28,6 +29,7 @@ import {
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { rateLimiter } from "@/components/utils/rateLimiter";
+import SampleDataLoader from "@/components/demo/SampleDataLoader";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -60,7 +62,33 @@ export default function GamesPage() {
         Game.filter(query, '-date', ITEMS_PER_PAGE, (currentPage - 1) * ITEMS_PER_PAGE)
       );
       
-      setGames(data || []);
+      // Load performance summaries for each game
+      if (data && data.length > 0) {
+        const gamesWithStats = await Promise.all(data.map(async (game) => {
+          try {
+            const performances = await GamePerformance.getByGame(game.id);
+            
+            // Calculate team totals
+            const teamStats = performances.reduce((acc, perf) => ({
+              totalPoints: acc.totalPoints + (perf.points || 0),
+              totalAssists: acc.totalAssists + (perf.assists || 0),
+              totalRebounds: acc.totalRebounds + (perf.rebounds || 0),
+              topScorer: (!acc.topScorer || perf.points > acc.topScorer.points) ? 
+                { athleteId: perf.athlete_id, points: perf.points } : acc.topScorer
+            }), { totalPoints: 0, totalAssists: 0, totalRebounds: 0, topScorer: null });
+            
+            return { ...game, teamStats };
+          } catch (error) {
+            console.error("Error loading game stats:", error);
+            return game;
+          }
+        }));
+        
+        setGames(gamesWithStats);
+      } else {
+        setGames(data || []);
+      }
+      
       setTotalGames(total || 0);
     } catch (error) {
       console.error("Error loading games:", error);
@@ -126,13 +154,23 @@ export default function GamesPage() {
             Track game results and player performances
           </p>
         </div>
-        <Button
-          onClick={() => setShowImportDialog(true)}
-          className="btn-team-primary mobile-full-width sm:w-auto"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          <span>Add Game</span>
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => window.location.href = '/demo'}
+            variant="outline"
+            className="mobile-full-width sm:w-auto"
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            <span>See Demo</span>
+          </Button>
+          <Button
+            onClick={() => setShowImportDialog(true)}
+            className="btn-team-primary mobile-full-width sm:w-auto"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            <span>Add Game</span>
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -170,23 +208,28 @@ export default function GamesPage() {
 
       {/* Games List */}
       {games.length === 0 ? (
-        <Card className="card-readable p-6 md:p-12 text-center">
-          <CardContent className="flex flex-col items-center p-0">
-            <Trophy className="w-12 h-12 md:w-16 md:h-16 text-gray-300 mb-4" />
-            <h2 className="text-lg md:text-xl font-semibold mb-2 text-high-contrast">
-              No Games Recorded
-            </h2>
-            <p className="text-medium-contrast mb-4 text-sm md:text-base">
-              Start tracking your team's performance by adding your first game.
-            </p>
-            <Button
-              onClick={() => setShowImportDialog(true)}
-              className="btn-team-primary"
-            >
-              <Plus className="w-4 h-4 mr-2" /> Add Your First Game
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="space-y-6">
+          {/* Demo Data Loader */}
+          <SampleDataLoader onDataLoaded={loadGames} />
+          
+          <Card className="card-readable p-6 md:p-12 text-center">
+            <CardContent className="flex flex-col items-center p-0">
+              <Trophy className="w-12 h-12 md:w-16 md:h-16 text-gray-300 mb-4" />
+              <h2 className="text-lg md:text-xl font-semibold mb-2 text-high-contrast">
+                No Games Recorded
+              </h2>
+              <p className="text-medium-contrast mb-4 text-sm md:text-base">
+                Load demo data above or start tracking by adding your first game.
+              </p>
+              <Button
+                onClick={() => setShowImportDialog(true)}
+                className="btn-team-primary"
+              >
+                <Plus className="w-4 h-4 mr-2" /> Add Your First Game
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       ) : (
         <div className="space-y-4">
           {games.map((game) => (
@@ -213,6 +256,18 @@ export default function GamesPage() {
                         <Badge variant="outline">{game.game_type}</Badge>
                       )}
                     </div>
+                    {game.teamStats && (
+                      <div className="flex items-center gap-4 mt-2 text-xs text-medium-contrast">
+                        <span>📊 {game.teamStats.totalPoints} PTS</span>
+                        <span>🎯 {game.teamStats.totalAssists} AST</span>
+                        <span>🏀 {game.teamStats.totalRebounds} REB</span>
+                        {game.teamStats.topScorer && (
+                          <span className="text-blue-600">
+                            ⭐ Top: {game.teamStats.topScorer.points} pts
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <Button

@@ -338,6 +338,60 @@ const createMockGame = () => ({
   }
 });
 
+const createMockBenchmark = () => ({
+  create: async (data) => {
+    const id = Date.now().toString();
+    const newBenchmark = {
+      id,
+      ...data,
+      created_date: new Date().toISOString(),
+      updated_date: new Date().toISOString()
+    };
+    const benchmarks = JSON.parse(localStorage.getItem('mock_benchmarks') || '[]');
+    benchmarks.push(newBenchmark);
+    localStorage.setItem('mock_benchmarks', JSON.stringify(benchmarks));
+    
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return newBenchmark;
+  },
+  
+  list: async () => {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return JSON.parse(localStorage.getItem('mock_benchmarks') || '[]');
+  },
+  
+  getByPlayer: async (playerId) => {
+    const benchmarks = JSON.parse(localStorage.getItem('mock_benchmarks') || '[]');
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return benchmarks.filter(b => b.player_id === playerId && b.active);
+  },
+  
+  update: async (id, data) => {
+    const benchmarks = JSON.parse(localStorage.getItem('mock_benchmarks') || '[]');
+    const index = benchmarks.findIndex(b => b.id === id);
+    if (index !== -1) {
+      benchmarks[index] = {
+        ...benchmarks[index],
+        ...data,
+        updated_date: new Date().toISOString()
+      };
+      localStorage.setItem('mock_benchmarks', JSON.stringify(benchmarks));
+      await new Promise(resolve => setTimeout(resolve, 200));
+      return benchmarks[index];
+    }
+    throw new Error('Benchmark not found');
+  },
+  
+  delete: async (id) => {
+    const benchmarks = JSON.parse(localStorage.getItem('mock_benchmarks') || '[]');
+    const filtered = benchmarks.filter(b => b.id !== id);
+    localStorage.setItem('mock_benchmarks', JSON.stringify(filtered));
+    
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return { success: true };
+  }
+});
+
 const createMockGamePerformance = () => ({
   create: async (data) => {
     const id = Date.now().toString();
@@ -439,5 +493,6 @@ export const mockEntities = {
   Team: createMockTeam(),
   Video: createMockVideo(),
   Game: createMockGame(),
-  GamePerformance: createMockGamePerformance()
+  GamePerformance: createMockGamePerformance(),
+  Benchmark: createMockBenchmark()
 };

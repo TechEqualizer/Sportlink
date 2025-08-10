@@ -14,6 +14,7 @@ import AthleteProfile from "../components/athletes/AthleteProfile";
 import AddAthleteDialog from "../components/athletes/AddAthleteDialog";
 import RosterFilters from "../components/athletes/RosterFilters";
 import EditAthleteDialog from "../components/athletes/EditAthleteDialog";
+import SampleDataLoader from "../components/demo/SampleDataLoader";
 
 const ITEMS_PER_PAGE = 25;
 
@@ -254,13 +255,17 @@ export default function AthletesPage() {
       )}
 
       {dataState.status === 'success' && dataState.athletes.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div className="lg:col-span-1">
-            <div className="flex justify-between items-center mb-2">
-              <h2 className="text-lg font-semibold">
-                Athletes ({dataState.total})
-              </h2>
-            </div>
+        <div className="space-y-6">
+          {/* Demo Data Loader for Performance Data */}
+          <SampleDataLoader onDataLoaded={() => {}} />
+          
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="lg:col-span-1">
+              <div className="flex justify-between items-center mb-2">
+                <h2 className="text-lg font-semibold">
+                  Athletes ({dataState.total})
+                </h2>
+              </div>
             {/* Sort controls */}
             <div className="mb-4">
               <Select value={sortOption} onValueChange={setSortOption}>
@@ -317,6 +322,7 @@ export default function AthletesPage() {
               </CardContent></Card>
             )}
           </div>
+        </div>
         </div>
       )}
       {/* Floating Action Button */}
