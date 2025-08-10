@@ -29,7 +29,6 @@ import {
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { rateLimiter } from "@/components/utils/rateLimiter";
-import SampleDataLoader from "@/components/demo/SampleDataLoader";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -209,9 +208,6 @@ export default function GamesPage() {
       {/* Games List */}
       {games.length === 0 ? (
         <div className="space-y-6">
-          {/* Demo Data Loader */}
-          <SampleDataLoader onDataLoaded={loadGames} />
-          
           <Card className="card-readable p-6 md:p-12 text-center">
             <CardContent className="flex flex-col items-center p-0">
               <Trophy className="w-12 h-12 md:w-16 md:h-16 text-gray-300 mb-4" />
@@ -219,7 +215,7 @@ export default function GamesPage() {
                 No Games Recorded
               </h2>
               <p className="text-medium-contrast mb-4 text-sm md:text-base">
-                Load demo data above or start tracking by adding your first game.
+                Start tracking your team's performance by adding your first game.
               </p>
               <Button
                 onClick={() => setShowImportDialog(true)}
