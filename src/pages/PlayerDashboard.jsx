@@ -101,31 +101,31 @@ export default function PlayerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <div className="border-b border-slate-800 bg-slate-900/50">
+      <div className="border-b border-border bg-muted/50">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-yellow-500/20 rounded-lg">
-                <BarChart3 className="w-6 h-6 text-yellow-400" />
+              <div className="p-2 bg-primary/20 rounded-lg">
+                <BarChart3 className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white">Player Performance Dashboard</h1>
-                <p className="text-slate-400">Target-based performance tracking and analytics</p>
+                <h1 className="text-2xl font-bold text-foreground">Player Performance Dashboard</h1>
+                <p className="text-muted-foreground">Target-based performance tracking and analytics</p>
               </div>
             </div>
             
             {selectedPlayer && (
               <div className="flex items-center gap-3">
                 <div className="text-right">
-                  <div className="text-lg font-bold text-white">{selectedPlayer.name}</div>
-                  <div className="text-sm text-slate-400">
+                  <div className="text-lg font-bold text-foreground">{selectedPlayer.name}</div>
+                  <div className="text-sm text-muted-foreground">
                     {selectedPlayer.position} • Class of {selectedPlayer.class_year}
                   </div>
                 </div>
-                <div className="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center">
-                  <User className="w-6 h-6 text-slate-300" />
+                <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
+                  <User className="w-6 h-6 text-muted-foreground" />
                 </div>
               </div>
             )}
@@ -136,31 +136,30 @@ export default function PlayerDashboard() {
       <div className="max-w-7xl mx-auto p-6">
         {/* Player Selection */}
         <div className="mb-6">
-          <Card className="bg-slate-900 border-slate-700">
+          <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-white flex items-center gap-2">
-                <Target className="w-5 h-5 text-yellow-400" />
+              <CardTitle className="flex items-center gap-2">
+                <Target className="w-5 h-5 text-primary" />
                 Player & Stats Selection
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm text-slate-300">Player</label>
+                  <label className="text-sm text-muted-foreground">Player</label>
                   <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
-                    <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                    <SelectTrigger>
                       <SelectValue placeholder="Select a player..." />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-600">
+                    <SelectContent>
                       {athletes.map(athlete => (
                         <SelectItem 
                           key={athlete.id} 
                           value={athlete.id}
-                          className="text-white hover:bg-slate-700"
                         >
                           <div className="flex items-center justify-between w-full">
                             <span>{athlete.name}</span>
-                            <span className="text-slate-400 ml-2">{athlete.position}</span>
+                            <span className="text-muted-foreground ml-2">{athlete.position}</span>
                           </div>
                         </SelectItem>
                       ))}
@@ -169,33 +168,32 @@ export default function PlayerDashboard() {
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="text-sm text-slate-300">Statistic</label>
+                  <label className="text-sm text-muted-foreground">Statistic</label>
                   <Select 
                     value={selectedStatType} 
                     onValueChange={setSelectedStatType}
                     disabled={!hasActiveBenchmarks}
                   >
-                    <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                    <SelectTrigger>
                       <SelectValue placeholder="Select stat type..." />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-600">
+                    <SelectContent>
                       {STAT_TYPES.map(stat => (
                         <SelectItem 
                           key={stat.value} 
                           value={stat.value}
                           disabled={!availableStats.includes(stat.value)}
-                          className="text-white hover:bg-slate-700 disabled:text-slate-500"
                         >
                           <div className="flex items-center justify-between w-full">
                             <span>{stat.label}</span>
-                            <span className="text-slate-400 ml-2">{stat.suffix}</span>
+                            <span className="text-muted-foreground ml-2">{stat.suffix}</span>
                           </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {!hasActiveBenchmarks && (
-                    <p className="text-xs text-slate-400">Set benchmarks first to enable stat selection</p>
+                    <p className="text-xs text-muted-foreground">Set benchmarks first to enable stat selection</p>
                   )}
                 </div>
               </div>
@@ -204,18 +202,12 @@ export default function PlayerDashboard() {
         </div>
 
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="bg-slate-900 border border-slate-700">
-            <TabsTrigger 
-              value="dashboard" 
-              className="data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-400"
-            >
+          <TabsList>
+            <TabsTrigger value="dashboard">
               <BarChart3 className="w-4 h-4 mr-2" />
               Performance Dashboard
             </TabsTrigger>
-            <TabsTrigger 
-              value="benchmarks" 
-              className="data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-400"
-            >
+            <TabsTrigger value="benchmarks">
               <Settings2 className="w-4 h-4 mr-2" />
               Benchmark Settings
             </TabsTrigger>
@@ -224,21 +216,20 @@ export default function PlayerDashboard() {
           {/* Performance Dashboard Tab */}
           <TabsContent value="dashboard" className="space-y-6">
             {!selectedPlayerId ? (
-              <Card className="bg-slate-900 border-slate-700">
+              <Card>
                 <CardContent className="p-8 text-center">
-                  <Target className="w-16 h-16 text-slate-500 mx-auto mb-4" />
-                  <p className="text-slate-300 text-lg">Select a player to view performance dashboard</p>
+                  <Target className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-foreground text-lg">Select a player to view performance dashboard</p>
                 </CardContent>
               </Card>
             ) : !hasActiveBenchmarks ? (
-              <Card className="bg-slate-900 border-slate-700">
+              <Card>
                 <CardContent className="p-8 text-center">
-                  <Target className="w-16 h-16 text-slate-500 mx-auto mb-4" />
-                  <p className="text-slate-300 text-lg mb-2">No benchmarks set for {selectedPlayer?.name}</p>
-                  <p className="text-slate-400 mb-4">Create benchmarks in the settings tab to start tracking performance</p>
+                  <Target className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-foreground text-lg mb-2">No benchmarks set for {selectedPlayer?.name}</p>
+                  <p className="text-muted-foreground mb-4">Create benchmarks in the settings tab to start tracking performance</p>
                   <Button 
                     onClick={() => document.querySelector('[data-state="inactive"]').click()}
-                    className="bg-yellow-600 hover:bg-yellow-700 text-white"
                   >
                     Set Benchmarks
                   </Button>
@@ -254,9 +245,9 @@ export default function PlayerDashboard() {
                   />
                   
                   {/* Player Stats Summary */}
-                  <Card className="bg-slate-900 border-slate-700 mt-4">
+                  <Card className="mt-4">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-white text-sm">Active Benchmarks</CardTitle>
+                      <CardTitle className="text-sm">Active Benchmarks</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
                       {playerBenchmarks.map(benchmark => (
@@ -264,16 +255,16 @@ export default function PlayerDashboard() {
                           key={benchmark.id}
                           className={`p-2 rounded cursor-pointer transition-colors ${
                             selectedStatType === benchmark.stat_type 
-                              ? 'bg-yellow-900/30 border border-yellow-400/30' 
-                              : 'bg-slate-800 hover:bg-slate-700'
+                              ? 'bg-primary/20 border border-primary/30' 
+                              : 'bg-muted hover:bg-muted/80'
                           }`}
                           onClick={() => setSelectedStatType(benchmark.stat_type)}
                         >
                           <div className="flex items-center justify-between">
-                            <span className="text-white text-sm">
+                            <span className="text-foreground text-sm">
                               {STAT_TYPES.find(s => s.value === benchmark.stat_type)?.label}
                             </span>
-                            <Badge variant="outline" className="text-yellow-400 border-yellow-400/30 text-xs">
+                            <Badge variant="outline" className="text-xs">
                               {benchmark.target_value}
                             </Badge>
                           </div>
