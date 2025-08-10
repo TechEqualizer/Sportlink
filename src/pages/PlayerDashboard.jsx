@@ -101,31 +101,31 @@ export default function PlayerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
-      <div className="border-b border-border bg-muted/50">
+      <div className="border-b border-gray-200 bg-white/50">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/20 rounded-lg">
-                <BarChart3 className="w-6 h-6 text-primary" />
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <BarChart3 className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Player Performance Dashboard</h1>
-                <p className="text-muted-foreground">Target-based performance tracking and analytics</p>
+                <h1 className="text-2xl font-bold text-gray-900">Player Performance Dashboard</h1>
+                <p className="text-gray-600">Target-based performance tracking and analytics</p>
               </div>
             </div>
             
             {selectedPlayer && (
               <div className="flex items-center gap-3">
                 <div className="text-right">
-                  <div className="text-lg font-bold text-foreground">{selectedPlayer.name}</div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-lg font-bold text-gray-900">{selectedPlayer.name}</div>
+                  <div className="text-sm text-gray-600">
                     {selectedPlayer.position} • Class of {selectedPlayer.class_year}
                   </div>
                 </div>
-                <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
-                  <User className="w-6 h-6 text-muted-foreground" />
+                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                  <User className="w-6 h-6 text-gray-600" />
                 </div>
               </div>
             )}
@@ -139,14 +139,14 @@ export default function PlayerDashboard() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2">
-                <Target className="w-5 h-5 text-primary" />
+                <Target className="w-5 h-5 text-blue-600" />
                 Player & Stats Selection
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground">Player</label>
+                  <label className="text-sm text-gray-600">Player</label>
                   <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a player..." />
@@ -159,7 +159,7 @@ export default function PlayerDashboard() {
                         >
                           <div className="flex items-center justify-between w-full">
                             <span>{athlete.name}</span>
-                            <span className="text-muted-foreground ml-2">{athlete.position}</span>
+                            <span className="text-gray-500 ml-2">{athlete.position}</span>
                           </div>
                         </SelectItem>
                       ))}
@@ -168,7 +168,7 @@ export default function PlayerDashboard() {
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground">Statistic</label>
+                  <label className="text-sm text-gray-600">Statistic</label>
                   <Select 
                     value={selectedStatType} 
                     onValueChange={setSelectedStatType}
@@ -186,14 +186,14 @@ export default function PlayerDashboard() {
                         >
                           <div className="flex items-center justify-between w-full">
                             <span>{stat.label}</span>
-                            <span className="text-muted-foreground ml-2">{stat.suffix}</span>
+                            <span className="text-gray-500 ml-2">{stat.suffix}</span>
                           </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {!hasActiveBenchmarks && (
-                    <p className="text-xs text-muted-foreground">Set benchmarks first to enable stat selection</p>
+                    <p className="text-xs text-gray-500">Set benchmarks first to enable stat selection</p>
                   )}
                 </div>
               </div>
@@ -218,16 +218,16 @@ export default function PlayerDashboard() {
             {!selectedPlayerId ? (
               <Card>
                 <CardContent className="p-8 text-center">
-                  <Target className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-foreground text-lg">Select a player to view performance dashboard</p>
+                  <Target className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-700 text-lg">Select a player to view performance dashboard</p>
                 </CardContent>
               </Card>
             ) : !hasActiveBenchmarks ? (
               <Card>
                 <CardContent className="p-8 text-center">
-                  <Target className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-foreground text-lg mb-2">No benchmarks set for {selectedPlayer?.name}</p>
-                  <p className="text-muted-foreground mb-4">Create benchmarks in the settings tab to start tracking performance</p>
+                  <Target className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-700 text-lg mb-2">No benchmarks set for {selectedPlayer?.name}</p>
+                  <p className="text-gray-500 mb-4">Create benchmarks in the settings tab to start tracking performance</p>
                   <Button 
                     onClick={() => document.querySelector('[data-state="inactive"]').click()}
                   >
@@ -255,13 +255,13 @@ export default function PlayerDashboard() {
                           key={benchmark.id}
                           className={`p-2 rounded cursor-pointer transition-colors ${
                             selectedStatType === benchmark.stat_type 
-                              ? 'bg-primary/20 border border-primary/30' 
-                              : 'bg-muted hover:bg-muted/80'
+                              ? 'bg-blue-100 border border-blue-300' 
+                              : 'bg-gray-50 hover:bg-gray-100'
                           }`}
                           onClick={() => setSelectedStatType(benchmark.stat_type)}
                         >
                           <div className="flex items-center justify-between">
-                            <span className="text-foreground text-sm">
+                            <span className="text-gray-700 text-sm">
                               {STAT_TYPES.find(s => s.value === benchmark.stat_type)?.label}
                             </span>
                             <Badge variant="outline" className="text-xs">

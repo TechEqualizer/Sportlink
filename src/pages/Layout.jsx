@@ -21,16 +21,13 @@ import { Button } from "@/components/ui/button";
 import { Team } from "@/api/entities";
 import { useTeamTheme } from "@/contexts/TeamThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/contexts/ThemeContext";
 import OptimizedImage from "@/components/ui/OptimizedImage";
-import ThemeToggle from "@/components/ui/ThemeToggle";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const isPlayerProfile = location.pathname.includes('/player/');
   const { team } = useTeamTheme();
   const { user, logout } = useAuth();
-  const { theme } = useTheme();
 
   const navigationItems = [
     {
@@ -69,8 +66,8 @@ export default function Layout({ children, currentPageName }) {
       '--primary-color': primaryColor,
       '--secondary-color': secondaryColor
     }}>
-      <div className="min-h-screen bg-background">
-        <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border shadow-sm">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16 md:h-20">
               <div className="flex-shrink-0 flex items-center min-w-0">
@@ -87,8 +84,8 @@ export default function Layout({ children, currentPageName }) {
                   )}
                 </div>
                 <div className="ml-3 min-w-0 flex-1">
-                  <h1 className="text-lg md:text-xl font-bold text-foreground truncate">{team?.name || "Team Name"}</h1>
-                  <p className="text-xs md:text-sm text-muted-foreground truncate">{getHeaderSubtext()}</p>
+                  <h1 className="text-lg md:text-xl font-bold text-high-contrast truncate">{team?.name || "Team Name"}</h1>
+                  <p className="text-xs md:text-sm text-low-contrast truncate">{getHeaderSubtext()}</p>
                 </div>
               </div>
 
@@ -121,9 +118,6 @@ export default function Layout({ children, currentPageName }) {
                     ))}
                   </nav>
                 )}
-
-                {/* Theme Toggle */}
-                <ThemeToggle />
 
                 {/* User Menu */}
                 <DropdownMenu>
