@@ -4,12 +4,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Target, User, TrendingUp, Settings2, BarChart3 } from "lucide-react";
+import { Target, User, TrendingUp, Settings2, BarChart3, Trophy } from "lucide-react";
 import { Athlete, Benchmark } from "@/api/entities";
 import { loadSampleBenchmarks } from "@/api/sampleBenchmarks";
 import BenchmarkSetter from "@/components/analytics/BenchmarkSetter";
 import PlayerBenchmarkBar from "@/components/analytics/PlayerBenchmarkBar";
 import QuickFilters from "@/components/analytics/QuickFilters";
+import BadgeShowcase from "@/components/analytics/BadgeShowcase";
+import PlayerBadgeStats from "@/components/analytics/PlayerBadgeStats";
 
 const STAT_TYPES = [
   { value: "points", label: "Points", suffix: "PPG" },
@@ -207,6 +209,10 @@ export default function PlayerDashboard() {
               <BarChart3 className="w-4 h-4 mr-2" />
               Performance Dashboard
             </TabsTrigger>
+            <TabsTrigger value="achievements">
+              <Trophy className="w-4 h-4 mr-2" />
+              Achievements
+            </TabsTrigger>
             <TabsTrigger value="benchmarks">
               <Settings2 className="w-4 h-4 mr-2" />
               Benchmark Settings
@@ -282,6 +288,32 @@ export default function PlayerDashboard() {
                     filters={filters}
                   />
                 </div>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Achievements Tab */}
+          <TabsContent value="achievements" className="space-y-6">
+            {!selectedPlayerId ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <Trophy className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-700 text-lg">Select a player to view their achievements</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-6">
+                {/* Badge Statistics */}
+                <PlayerBadgeStats playerId={selectedPlayerId} />
+                
+                {/* Badge Showcase */}
+                <BadgeShowcase 
+                  playerId={selectedPlayerId} 
+                  onBadgeClick={(badge) => {
+                    // Could open a modal with badge details
+                    console.log('Badge clicked:', badge);
+                  }} 
+                />
               </div>
             )}
           </TabsContent>
