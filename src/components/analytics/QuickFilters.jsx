@@ -76,7 +76,7 @@ export default function QuickFilters({ filters = {}, onFiltersChange, className 
               <Calendar className="w-4 h-4 text-slate-400" />
               <span className="text-sm text-slate-300">Time Period</span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {FILTER_OPTIONS.period.map(option => (
                 <Button
                   key={option.value}
@@ -101,7 +101,7 @@ export default function QuickFilters({ filters = {}, onFiltersChange, className 
               <MapPin className="w-4 h-4 text-slate-400" />
               <span className="text-sm text-slate-300">Location</span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {FILTER_OPTIONS.location.map(option => (
                 <Button
                   key={option.value}
@@ -126,7 +126,7 @@ export default function QuickFilters({ filters = {}, onFiltersChange, className 
               <Trophy className="w-4 h-4 text-slate-400" />
               <span className="text-sm text-slate-300">Game Result</span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {FILTER_OPTIONS.result.map(option => (
                 <Button
                   key={option.value}
