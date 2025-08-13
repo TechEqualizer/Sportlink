@@ -407,9 +407,9 @@ export default function PerformanceReview() {
       {selectedAthleteData && athleteStats && (
         <>
           {/* Key Metrics Overview */}
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 md:gap-4">
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 md:p-4">
                 <div className="text-xs text-medium-contrast mb-1">Points</div>
                 <TrendIndicator 
                   current={athleteStats.ppg} 
@@ -420,7 +420,7 @@ export default function PerformanceReview() {
             </Card>
             
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 md:p-4">
                 <div className="text-xs text-medium-contrast mb-1">Assists</div>
                 <TrendIndicator 
                   current={athleteStats.apg} 
@@ -431,7 +431,7 @@ export default function PerformanceReview() {
             </Card>
             
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 md:p-4">
                 <div className="text-xs text-medium-contrast mb-1">Rebounds</div>
                 <TrendIndicator 
                   current={athleteStats.rpg} 
@@ -442,21 +442,21 @@ export default function PerformanceReview() {
             </Card>
             
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 md:p-4">
                 <div className="text-xs text-medium-contrast mb-1">FG%</div>
                 <div className="font-semibold">{athleteStats.fg_percentage}%</div>
               </CardContent>
             </Card>
             
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 md:p-4">
                 <div className="text-xs text-medium-contrast mb-1">Efficiency</div>
                 <div className="font-semibold">{athleteStats.efficiency}</div>
               </CardContent>
             </Card>
             
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 md:p-4">
                 <div className="text-xs text-medium-contrast mb-1">Minutes</div>
                 <div className="font-semibold">{athleteStats.mpg} MPG</div>
               </CardContent>
@@ -473,9 +473,9 @@ export default function PerformanceReview() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                   {insights.map((insight, index) => (
-                    <div key={index} className={`p-3 rounded-lg border ${
+                    <div key={index} className={`p-3 md:p-4 rounded-lg border ${
                       insight.type === 'positive' ? 'bg-green-50 border-green-200' :
                       insight.type === 'warning' ? 'bg-yellow-50 border-yellow-200' :
                       'bg-orange-50 border-orange-200'
@@ -494,7 +494,7 @@ export default function PerformanceReview() {
 
           {/* Performance Charts */}
           <Tabs defaultValue="trends" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
               <TabsTrigger value="trends">Performance Trends</TabsTrigger>
               <TabsTrigger value="shooting">Shooting Analysis</TabsTrigger>
               <TabsTrigger value="profile">Player Profile</TabsTrigger>
@@ -507,7 +507,7 @@ export default function PerformanceReview() {
                   <CardTitle>Performance Trends Over Time</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80">
+                  <div className="h-64 md:h-80">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={performanceTrendData}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -530,7 +530,7 @@ export default function PerformanceReview() {
                   <CardTitle>Minutes & Workload Management</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-64">
+                  <div className="h-48 md:h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={performanceTrendData}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -551,7 +551,7 @@ export default function PerformanceReview() {
                   <CardTitle>Shooting Percentage Trends</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80">
+                  <div className="h-64 md:h-80">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={shootingData}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -568,7 +568,7 @@ export default function PerformanceReview() {
                 </CardContent>
               </Card>
 
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base">Field Goal Breakdown</CardTitle>
@@ -644,13 +644,13 @@ export default function PerformanceReview() {
             </TabsContent>
 
             <TabsContent value="profile">
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <Card>
                   <CardHeader>
                     <CardTitle>Player Performance Profile</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-80">
+                    <div className="h-64 md:h-80">
                       <ResponsiveContainer width="100%" height="100%">
                         <RadarChart data={radarData}>
                           <PolarGrid />
@@ -726,22 +726,22 @@ export default function PerformanceReview() {
                   <CardTitle>Detailed Game Log</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto -mx-4 md:mx-0">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b">
-                          <th className="text-left p-2">Date</th>
-                          <th className="text-left p-2">Opponent</th>
-                          <th className="text-center p-2">Result</th>
-                          <th className="text-center p-2">MIN</th>
-                          <th className="text-center p-2">PTS</th>
-                          <th className="text-center p-2">REB</th>
-                          <th className="text-center p-2">AST</th>
-                          <th className="text-center p-2">FG</th>
-                          <th className="text-center p-2">3PT</th>
-                          <th className="text-center p-2">FT</th>
-                          <th className="text-center p-2">+/-</th>
-                          <th className="text-center p-2">Badges</th>
+                        <tr className="border-b bg-gray-50">
+                          <th className="text-left p-2 md:p-3 sticky left-0 bg-gray-50">Date</th>
+                          <th className="text-left p-2 md:p-3 min-w-[120px]">Opponent</th>
+                          <th className="text-center p-2 md:p-3">Result</th>
+                          <th className="text-center p-2 md:p-3">MIN</th>
+                          <th className="text-center p-2 md:p-3">PTS</th>
+                          <th className="text-center p-2 md:p-3">REB</th>
+                          <th className="text-center p-2 md:p-3">AST</th>
+                          <th className="text-center p-2 md:p-3 hidden sm:table-cell">FG</th>
+                          <th className="text-center p-2 md:p-3 hidden sm:table-cell">3PT</th>
+                          <th className="text-center p-2 md:p-3 hidden sm:table-cell">FT</th>
+                          <th className="text-center p-2 md:p-3 hidden md:table-cell">+/-</th>
+                          <th className="text-center p-2 md:p-3">Badges</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -749,39 +749,41 @@ export default function PerformanceReview() {
                           const badges = calculateBadgesForPerformance(perf, perf.game);
                           return (
                             <tr key={index} className="border-b hover:bg-gray-50">
-                              <td className="p-2">{format(new Date(perf.date), 'MM/dd')}</td>
-                              <td className="p-2">{perf.opponent}</td>
-                              <td className="p-2 text-center">
+                              <td className="p-2 md:p-3 sticky left-0 bg-white text-xs md:text-sm">
+                                {format(new Date(perf.date), 'MM/dd')}
+                              </td>
+                              <td className="p-2 md:p-3 text-xs md:text-sm">{perf.opponent}</td>
+                              <td className="p-2 md:p-3 text-center">
                                 <Badge className={perf.result === 'W' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
                                   {perf.result}
                                 </Badge>
                               </td>
-                              <td className="p-2 text-center">{perf.minutes}</td>
-                              <td className="p-2 text-center font-bold">{perf.points}</td>
-                              <td className="p-2 text-center">{perf.rebounds}</td>
-                              <td className="p-2 text-center">{perf.assists}</td>
-                              <td className="p-2 text-center text-xs">
+                              <td className="p-2 md:p-3 text-center text-xs md:text-sm">{perf.minutes}</td>
+                              <td className="p-2 md:p-3 text-center font-bold text-sm md:text-base">{perf.points}</td>
+                              <td className="p-2 md:p-3 text-center text-xs md:text-sm">{perf.rebounds}</td>
+                              <td className="p-2 md:p-3 text-center text-xs md:text-sm">{perf.assists}</td>
+                              <td className="p-2 md:p-3 text-center text-xs hidden sm:table-cell">
                                 {perf.field_goals_made}-{perf.field_goals_attempted}
                               </td>
-                              <td className="p-2 text-center text-xs">
+                              <td className="p-2 md:p-3 text-center text-xs hidden sm:table-cell">
                                 {perf.three_pointers_made}-{perf.three_pointers_attempted}
                               </td>
-                              <td className="p-2 text-center text-xs">
+                              <td className="p-2 md:p-3 text-center text-xs hidden sm:table-cell">
                                 {perf.free_throws_made}-{perf.free_throws_attempted}
                               </td>
-                              <td className="p-2 text-center">
+                              <td className="p-2 md:p-3 text-center text-xs hidden md:table-cell">
                                 {perf.plus_minus || '--'}
                               </td>
-                              <td className="p-2 text-center">
+                              <td className="p-2 md:p-3 text-center">
                                 {badges.length > 0 && (
-                                  <div className="flex gap-1 justify-center">
+                                  <div className="flex gap-1 justify-center flex-wrap">
                                     {badges.slice(0, 2).map((badge, i) => (
-                                      <span key={i} className="text-lg" title={badge.name}>
+                                      <span key={i} className="text-sm md:text-lg" title={badge.name}>
                                         {badge.icon}
                                       </span>
                                     ))}
                                     {badges.length > 2 && (
-                                      <span className="text-xs text-gray-500">+{badges.length - 2}</span>
+                                      <span className="text-xs text-gray-500 hidden sm:inline">+{badges.length - 2}</span>
                                     )}
                                   </div>
                                 )}
