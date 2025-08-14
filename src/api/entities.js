@@ -1,6 +1,7 @@
 import { base44 } from './base44Client';
 import { mockEntities } from './mockClient';
 import { Athlete as RealAthlete, Video as RealVideo, Team as RealTeam } from './apiClient';
+import { loadMockPerformanceData } from './mockPerformanceData';
 
 // Use real API in development mode, fallback to mock if backend is unavailable
 const isDevelopment = import.meta.env.DEV;
@@ -15,3 +16,7 @@ export const Benchmark = mockEntities.Benchmark;
 
 // auth sdk:
 export const User = base44.auth;
+
+// Performance data loader
+export { loadMockPerformanceData, clearMockPerformanceData } from './mockPerformanceData';
+export { mockPlayerAnalytics, mockTeamMetrics } from './mockPerformanceData';

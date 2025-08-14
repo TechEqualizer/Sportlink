@@ -6,6 +6,7 @@ import { TrendingUp, TrendingDown, Target, Trophy } from "lucide-react";
 import { Game, GamePerformance, Benchmark } from "@/api/entities";
 import { format } from "date-fns";
 import { calculateBadgesForPerformance } from "@/utils/badges";
+import { mockPlayerAnalytics } from "@/api/mockPerformanceData";
 
 // Custom tooltip component
 const BenchmarkTooltip = ({ active, payload, label }) => {
@@ -72,6 +73,35 @@ export default function PlayerBenchmarkBar({
   const loadChartData = async () => {
     setIsLoading(true);
     try {
+      // Use mock data if available
+      const mockData = mockPlayerAnalytics[playerId];
+      if (mockData && mockData.benchmarkProgress[statType]) {
+        const benchmarkData = mockData.benchmarkProgress[statType];
+        setBenchmark({ target_value: benchmarkData.target });
+        
+        const chartData = benchmarkData.lastFiveGames.map(game => ({
+          gameId: `game_${game.date}`,
+          opponent: game.opponent,
+          date: format(new Date(game.date), 'MM/dd'),
+          fullDate: format(new Date(game.date), 'MMM dd'),
+          actual: game.actual,
+          target: game.target,
+          difference: game.actual - game.target,
+          hit: game.hit,
+          result: 'W', // Mock result
+          teamScore: 80,
+          opponentScore: 75,
+          badges: [],
+          fill: game.hit ? '#10b981' : '#ef4444'
+        }));
+        
+        setChartData(chartData);
+        setHitRate(benchmarkData.hitRate);
+        setAvgActual(benchmarkData.current);
+        setIsLoading(false);
+        return;
+      }
+      
       // Load player benchmarks
       const benchmarks = await Benchmark.getByPlayer(playerId);
       const playerBenchmark = benchmarks.find(b => b.stat_type === statType && b.active);

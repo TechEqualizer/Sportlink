@@ -15,6 +15,7 @@ import {
 import { GamePerformance, Game } from "@/api/entities";
 import { BADGE_DEFINITIONS, calculateBadgesForPerformance } from "@/utils/badges";
 import { format, differenceInDays } from "date-fns";
+import { mockPlayerAnalytics } from "@/api/mockPerformanceData";
 
 export default function PlayerBadgeStats({ playerId }) {
   const [stats, setStats] = useState({
@@ -40,6 +41,28 @@ export default function PlayerBadgeStats({ playerId }) {
   const calculateBadgeStats = async () => {
     setIsLoading(true);
     try {
+      // Use mock data if available
+      const mockData = mockPlayerAnalytics[playerId];
+      if (mockData && mockData.badgeStats) {
+        const badgeData = mockData.badgeStats;
+        
+        setStats({
+          totalBadges: badgeData.totalBadges,
+          byTier: badgeData.byTier,
+          recentBadges: badgeData.recentBadges,
+          currentStreak: badgeData.currentStreak,
+          bestStreak: badgeData.bestStreak,
+          avgBadgesPerGame: (badgeData.totalBadges / 5).toFixed(1), // 5 games
+          rarestBadge: badgeData.rarestBadge,
+          mostCommonBadge: null,
+          lastBadgeDate: badgeData.recentBadges[0]?.date,
+          badgeTimeline: badgeData.recentBadges
+        });
+        
+        setIsLoading(false);
+        return;
+      }
+      
       // Load all performances and games for the player
       const [performances, games] = await Promise.all([
         GamePerformance.getByAthlete(playerId),

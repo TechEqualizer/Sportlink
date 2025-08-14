@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { BADGE_DEFINITIONS, getBadgeColor, getBadgeLevelName } from "@/utils/badges";
 import { GamePerformance } from "@/api/entities";
+import { mockPlayerAnalytics } from "@/api/mockPerformanceData";
 
 const TIER_ORDER = ['bronze', 'silver', 'gold', 'platinum'];
 const TIER_COLORS = {
@@ -39,6 +40,29 @@ export default function BadgeShowcase({ playerId, onBadgeClick }) {
   const loadPlayerBadges = async () => {
     setIsLoading(true);
     try {
+      // Use mock data if available
+      const mockData = mockPlayerAnalytics[playerId];
+      if (mockData && mockData.badgeStats) {
+        const badgeData = mockData.badgeStats;
+        
+        // Convert recent badges to the expected format
+        const earnedBadges = badgeData.recentBadges.flatMap(game => 
+          game.badges.map(badge => ({
+            id: badge.name.toLowerCase().replace(/\s+/g, '_'),
+            name: badge.name,
+            description: BADGE_DEFINITIONS[badge.name.toUpperCase().replace(/\s+/g, '_')]?.description || badge.name,
+            icon: badge.icon,
+            tier: badge.level,
+            count: 1,
+            lastEarned: game.date
+          }))
+        );
+        
+        setPlayerBadges(earnedBadges);
+        setIsLoading(false);
+        return;
+      }
+      
       // Load all performances for the player
       const performances = await GamePerformance.getByAthlete(playerId);
       

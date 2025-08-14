@@ -5,13 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Target, User, TrendingUp, Settings2, BarChart3, Trophy } from "lucide-react";
+import { Users } from "lucide-react";
 import { Athlete, Benchmark } from "@/api/entities";
 import { loadSampleBenchmarks } from "@/api/sampleBenchmarks";
+import { loadMockPerformanceData } from "@/api/mockPerformanceData";
 import BenchmarkSetter from "@/components/analytics/BenchmarkSetter";
 import PlayerBenchmarkBar from "@/components/analytics/PlayerBenchmarkBar";
 import QuickFilters from "@/components/analytics/QuickFilters";
 import BadgeShowcase from "@/components/analytics/BadgeShowcase";
 import PlayerBadgeStats from "@/components/analytics/PlayerBadgeStats";
+import PerformanceInsights from "@/components/analytics/PerformanceInsights";
+import TeamPerformanceOverview from "@/components/analytics/TeamPerformanceOverview";
 
 const STAT_TYPES = [
   { value: "points", label: "Points", suffix: "PPG" },
@@ -48,6 +52,9 @@ export default function PlayerDashboard() {
     try {
       // Load sample benchmarks into localStorage if not present
       loadSampleBenchmarks();
+      
+      // Load mock performance data
+      loadMockPerformanceData();
       
       // Load athletes
       const athleteData = await Athlete.list();
@@ -213,6 +220,14 @@ export default function PlayerDashboard() {
               <Trophy className="w-4 h-4 mr-2" />
               Achievements
             </TabsTrigger>
+            <TabsTrigger value="insights">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Insights
+            </TabsTrigger>
+            <TabsTrigger value="team">
+              <Users className="w-4 h-4 mr-2" />
+              Team Overview
+            </TabsTrigger>
             <TabsTrigger value="benchmarks">
               <Settings2 className="w-4 h-4 mr-2" />
               Benchmark Settings
@@ -316,6 +331,25 @@ export default function PlayerDashboard() {
                 />
               </div>
             )}
+          </TabsContent>
+
+          {/* Insights Tab */}
+          <TabsContent value="insights" className="space-y-6">
+            {!selectedPlayerId ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <TrendingUp className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-700 text-lg">Select a player to view performance insights</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <PerformanceInsights playerId={selectedPlayerId} />
+            )}
+          </TabsContent>
+
+          {/* Team Overview Tab */}
+          <TabsContent value="team" className="space-y-6">
+            <TeamPerformanceOverview />
           </TabsContent>
 
           {/* Benchmark Settings Tab */}
