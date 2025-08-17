@@ -5,171 +5,195 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/components/ui/use-toast";
-import { useMessages } from "@/contexts/MessageContext";
 import { 
   AlertTriangle,
   TrendingDown,
+  TrendingUp,
   Trophy,
   Target,
   CheckCircle,
-  XCircle,
   Info,
-  ChevronRight,
-  Filter,
-  RefreshCw
+  RefreshCw,
+  User,
+  BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// Mock performance alerts data
+const MOCK_ALERTS = [
+  {
+    id: 'alert_1',
+    playerId: '1',
+    playerName: 'John Smith',
+    alertType: 'benchmark_exceeded',
+    severity: 'success',
+    message: 'John Smith exceeded assists benchmark by 20% (9.2 APG vs 7.5 target)',
+    metricName: 'assists',
+    currentValue: 9.2,
+    thresholdValue: 7.5,
+    trend: 20,
+    acknowledged: false,
+    createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
+    gameContext: 'vs West High Eagles'
+  },
+  {
+    id: 'alert_2',
+    playerId: '2',
+    playerName: 'Sarah Johnson',
+    alertType: 'shooting_hot_streak',
+    severity: 'success',
+    message: 'Sarah Johnson on fire from three-point range (58% over last 3 games)',
+    metricName: 'three_point_percentage',
+    currentValue: 58,
+    thresholdValue: 40,
+    trend: 18,
+    acknowledged: false,
+    createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(), // 45 minutes ago
+    gameContext: 'Last 3 games'
+  },
+  {
+    id: 'alert_3',
+    playerId: '3',
+    playerName: 'Mike Williams',
+    alertType: 'defensive_dominance',
+    severity: 'info',
+    message: 'Mike Williams averaging 4.2 blocks per game over last 5 games',
+    metricName: 'blocks',
+    currentValue: 4.2,
+    thresholdValue: 2.5,
+    trend: 68,
+    acknowledged: false,
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+    gameContext: 'Last 5 games'
+  },
+  {
+    id: 'alert_4',
+    playerId: '1',
+    playerName: 'John Smith',
+    alertType: 'triple_double_watch',
+    severity: 'info',
+    message: 'John Smith close to triple-double (18 PTS, 10 REB, 8 AST in last game)',
+    metricName: 'triple_double_potential',
+    currentValue: 8,
+    thresholdValue: 10,
+    trend: 0,
+    acknowledged: true,
+    acknowledgedAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+    createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
+    gameContext: 'vs North Central'
+  },
+  {
+    id: 'alert_5',
+    playerId: '2',
+    playerName: 'Sarah Johnson',
+    alertType: 'scoring_milestone',
+    severity: 'success',
+    message: 'Sarah Johnson reached 1,000 career points milestone!',
+    metricName: 'career_points',
+    currentValue: 1000,
+    thresholdValue: 1000,
+    trend: 0,
+    acknowledged: false,
+    createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
+    gameContext: 'Career milestone'
+  },
+  {
+    id: 'alert_6',
+    playerId: '3',
+    playerName: 'Mike Williams',
+    alertType: 'free_throw_concern',
+    severity: 'warning',
+    message: 'Mike Williams free throw percentage dropped to 58% (below 70% target)',
+    metricName: 'free_throw_percentage',
+    currentValue: 58,
+    thresholdValue: 70,
+    trend: -12,
+    acknowledged: false,
+    createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8 hours ago
+    gameContext: 'Last 5 games'
+  }
+];
+
 export default function PerformanceAlerts() {
   const { toast } = useToast();
-  const [alerts, setAlerts] = useState([]);
+  const [alerts, setAlerts] = useState(MOCK_ALERTS);
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(false);
 
-  // API Base URL - same configuration as MessageContext
-  const API_BASE = process.env.NODE_ENV === 'production' 
-    ? '/api' 
-    : 'http://localhost:3001/api';
+  const handleAcknowledge = (alertId) => {
+    setAlerts(prev => prev.map(alert => 
+      alert.id === alertId 
+        ? { ...alert, acknowledged: true, acknowledgedAt: new Date().toISOString() }
+        : alert
+    ));
+    
+    toast({
+      title: "Alert Acknowledged",
+      description: "The alert has been marked as reviewed"
+    });
+  };
 
-  useEffect(() => {
-    fetchAlerts();
-  }, []);
-
-  const fetchAlerts = async () => {
+  const handleRefresh = () => {
     setLoading(true);
-    try {
-      const response = await fetch(`${API_BASE}/athletes/performance-alerts`);
-      
-      // Check if the response is ok
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setAlerts(data.data || []);
-      } else {
-        console.error('Failed to fetch alerts:', data.error);
-        toast({
-          title: "Error",
-          description: data.error || "Failed to load performance alerts",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching alerts:', error);
-      console.warn('Backend not available, using mock alerts:', error.message);
-      toast({
-        title: "Error",
-        description: `Failed to load performance alerts: ${error.message}`,
-        variant: "destructive"
-      });
-      // Use mock data when backend is not available
-      const mockAlerts = [
-        {
-          id: 1,
-          type: 'performance',
-          severity: 'high',
-          message: 'John Smith exceeded shooting percentage benchmark by 15%',
-          player: 'John Smith',
-          metric: 'Field Goal %',
-          value: '65%',
-          benchmark: '50%',
-          timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-          read: false
-        },
-        {
-          id: 2,
-          type: 'performance',
-          severity: 'medium',
-          message: 'Sarah Johnson achieved new personal best in rebounds',
-          player: 'Sarah Johnson',
-          metric: 'Rebounds',
-          value: '12',
-          benchmark: '8',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-          read: false
-        },
-        {
-          id: 3,
-          type: 'team',
-          severity: 'low',
-          message: 'Team shooting percentage below season average',
-          metric: 'Team FG%',
-          value: '42%',
-          benchmark: '48%',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
-          read: true
-        }
-      ];
-      setAlerts(mockAlerts);
-    } finally {
+    // Simulate refresh delay
+    setTimeout(() => {
       setLoading(false);
-    }
-  };
-
-  const handleAcknowledge = async (alertId) => {
-    try {
-      const response = await fetch(`${API_BASE}/messages/alerts/${alertId}/acknowledge`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setAlerts(prev => prev.map(alert => 
-          alert.id === alertId 
-            ? { ...alert, acknowledged: true, acknowledgedAt: new Date() }
-            : alert
-        ));
-        toast({
-          title: "Alert Acknowledged",
-          description: "The alert has been marked as reviewed"
-        });
-      } else {
-        throw new Error(data.error || 'Failed to acknowledge alert');
-      }
-    } catch (error) {
-      console.error('Failed to acknowledge alert:', error);
       toast({
-        title: "Error",
-        description: `Failed to acknowledge alert: ${error.message}`,
-        variant: "destructive"
+        title: "Alerts Refreshed",
+        description: "Performance alerts have been updated"
       });
-    }
+    }, 1000);
   };
 
-  const getAlertIcon = (type) => {
-    switch(type) {
-      case 'benchmark_low': return <Target className="h-4 w-4" />;
-      case 'negative_trend': return <TrendingDown className="h-4 w-4" />;
-      case 'improvement': return <Trophy className="h-4 w-4" />;
-      case 'critical': return <AlertTriangle className="h-4 w-4" />;
-      default: return <Info className="h-4 w-4" />;
+  const getAlertIcon = (alertType) => {
+    switch(alertType) {
+      case 'benchmark_exceeded':
+      case 'shooting_hot_streak':
+      case 'scoring_milestone':
+        return <Trophy className="h-4 w-4" />;
+      case 'defensive_dominance':
+        return <Target className="h-4 w-4" />;
+      case 'triple_double_watch':
+        return <BarChart3 className="h-4 w-4" />;
+      case 'free_throw_concern':
+        return <TrendingDown className="h-4 w-4" />;
+      default:
+        return <Info className="h-4 w-4" />;
     }
   };
 
   const getSeverityColor = (severity) => {
     switch(severity) {
-      case 'critical': return 'destructive';
-      case 'alert': return 'warning';
+      case 'success': return 'default';
       case 'warning': return 'secondary';
+      case 'info': return 'outline';
       default: return 'default';
+    }
+  };
+
+  const getAlertBgColor = (severity) => {
+    switch(severity) {
+      case 'success': return 'bg-green-50 border-green-200';
+      case 'warning': return 'bg-yellow-50 border-yellow-200';
+      case 'info': return 'bg-blue-50 border-blue-200';
+      default: return 'bg-gray-50 border-gray-200';
+    }
+  };
+
+  const getAlertTextColor = (severity) => {
+    switch(severity) {
+      case 'success': return 'text-green-800';
+      case 'warning': return 'text-yellow-800';
+      case 'info': return 'text-blue-800';
+      default: return 'text-gray-800';
     }
   };
 
   const filteredAlerts = alerts.filter(alert => {
     if (filter === 'all') return true;
     if (filter === 'unacknowledged') return !alert.acknowledged;
-    if (filter === 'critical') return alert.severity === 'critical';
+    if (filter === 'success') return alert.severity === 'success';
+    if (filter === 'warning') return alert.severity === 'warning';
     return alert.alertType === filter;
   });
 
@@ -177,13 +201,27 @@ export default function PerformanceAlerts() {
   const alertsByPlayer = filteredAlerts.reduce((acc, alert) => {
     if (!acc[alert.playerId]) {
       acc[alert.playerId] = {
-        playerName: alert.playerName || `Player ${alert.playerId}`,
+        playerName: alert.playerName,
         alerts: []
       };
     }
     acc[alert.playerId].alerts.push(alert);
     return acc;
   }, {});
+
+  const formatTimeAgo = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+    
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes}m ago`;
+    } else if (diffInMinutes < 1440) {
+      return `${Math.floor(diffInMinutes / 60)}h ago`;
+    } else {
+      return `${Math.floor(diffInMinutes / 1440)}d ago`;
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -195,7 +233,7 @@ export default function PerformanceAlerts() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={fetchAlerts}
+              onClick={handleRefresh}
               disabled={loading}
             >
               <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
@@ -205,20 +243,28 @@ export default function PerformanceAlerts() {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-red-500">{alerts.filter(a => a.severity === 'critical').length}</p>
-              <p className="text-sm text-gray-600">Critical</p>
+              <p className="text-2xl font-bold text-green-500">
+                {alerts.filter(a => a.severity === 'success').length}
+              </p>
+              <p className="text-sm text-gray-600">Positive</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-yellow-500">{alerts.filter(a => a.severity === 'alert').length}</p>
-              <p className="text-sm text-gray-600">Alerts</p>
+              <p className="text-2xl font-bold text-yellow-500">
+                {alerts.filter(a => a.severity === 'warning').length}
+              </p>
+              <p className="text-sm text-gray-600">Warnings</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-blue-500">{alerts.filter(a => !a.acknowledged).length}</p>
+              <p className="text-2xl font-bold text-blue-500">
+                {alerts.filter(a => !a.acknowledged).length}
+              </p>
               <p className="text-sm text-gray-600">Unreviewed</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-gray-500">{Object.keys(alertsByPlayer).length}</p>
-              <p className="text-sm text-gray-600">Players Affected</p>
+              <p className="text-2xl font-bold text-gray-500">
+                {Object.keys(alertsByPlayer).length}
+              </p>
+              <p className="text-sm text-gray-600">Players</p>
             </div>
           </div>
         </CardContent>
@@ -241,25 +287,18 @@ export default function PerformanceAlerts() {
           Unreviewed ({alerts.filter(a => !a.acknowledged).length})
         </Button>
         <Button
-          variant={filter === 'critical' ? 'default' : 'outline'}
+          variant={filter === 'success' ? 'default' : 'outline'}
           size="sm"
-          onClick={() => setFilter('critical')}
+          onClick={() => setFilter('success')}
         >
-          Critical ({alerts.filter(a => a.severity === 'critical').length})
+          Positive ({alerts.filter(a => a.severity === 'success').length})
         </Button>
         <Button
-          variant={filter === 'benchmark_low' ? 'default' : 'outline'}
+          variant={filter === 'warning' ? 'default' : 'outline'}
           size="sm"
-          onClick={() => setFilter('benchmark_low')}
+          onClick={() => setFilter('warning')}
         >
-          Below Benchmark
-        </Button>
-        <Button
-          variant={filter === 'negative_trend' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setFilter('negative_trend')}
-        >
-          Negative Trends
+          Warnings ({alerts.filter(a => a.severity === 'warning').length})
         </Button>
       </div>
 
@@ -283,69 +322,97 @@ export default function PerformanceAlerts() {
               <Card key={playerId}>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold">{playerData.playerName}</h3>
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-gray-500" />
+                      <h3 className="font-semibold">{playerData.playerName}</h3>
+                    </div>
                     <Badge variant="secondary">
                       {playerData.alerts.length} alert{playerData.alerts.length > 1 ? 's' : ''}
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="space-y-3">
                   {playerData.alerts.map(alert => (
                     <Alert 
                       key={alert.id}
                       className={cn(
                         "relative",
+                        getAlertBgColor(alert.severity),
                         alert.acknowledged && "opacity-60"
                       )}
                     >
                       <div className="flex items-start gap-3">
                         <div className={cn(
                           "p-2 rounded-lg",
-                          alert.severity === 'critical' ? 'bg-red-100' :
-                          alert.severity === 'alert' ? 'bg-yellow-100' :
+                          alert.severity === 'success' ? 'bg-green-100' :
+                          alert.severity === 'warning' ? 'bg-yellow-100' :
                           'bg-blue-100'
                         )}>
                           {getAlertIcon(alert.alertType)}
                         </div>
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center gap-2 mb-2">
                             <Badge variant={getSeverityColor(alert.severity)}>
                               {alert.severity}
                             </Badge>
                             <span className="text-xs text-gray-500">
-                              {new Date(alert.createdAt).toLocaleDateString()}
+                              {formatTimeAgo(alert.createdAt)}
                             </span>
+                            {alert.gameContext && (
+                              <span className="text-xs text-gray-500">
+                                • {alert.gameContext}
+                              </span>
+                            )}
                           </div>
                           <AlertDescription>
-                            <p className="font-medium">{alert.message}</p>
-                            {alert.metric && (
-                              <p className="text-sm text-gray-600 mt-1">
-                                {alert.metric}: {alert.currentValue} 
-                                {alert.thresholdValue && ` (threshold: ${alert.thresholdValue})`}
-                                {alert.trend && (
-                                  <span className={cn(
-                                    "ml-2",
-                                    alert.trend > 0 ? "text-green-600" : "text-red-600"
-                                  )}>
-                                    {alert.trend > 0 ? '+' : ''}{alert.trend}%
-                                  </span>
+                            <p className={cn("font-medium", getAlertTextColor(alert.severity))}>
+                              {alert.message}
+                            </p>
+                            {alert.metricName && alert.currentValue && (
+                              <div className="mt-2 flex items-center gap-4 text-sm">
+                                <div className="flex items-center gap-1">
+                                  <span className="text-gray-600">Current:</span>
+                                  <span className="font-bold">{alert.currentValue}</span>
+                                </div>
+                                {alert.thresholdValue && (
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-gray-600">Target:</span>
+                                    <span className="font-bold">{alert.thresholdValue}</span>
+                                  </div>
                                 )}
-                              </p>
+                                {alert.trend !== 0 && (
+                                  <div className="flex items-center gap-1">
+                                    {alert.trend > 0 ? (
+                                      <TrendingUp className="w-3 h-3 text-green-600" />
+                                    ) : (
+                                      <TrendingDown className="w-3 h-3 text-red-600" />
+                                    )}
+                                    <span className={cn(
+                                      "font-bold text-xs",
+                                      alert.trend > 0 ? "text-green-600" : "text-red-600"
+                                    )}>
+                                      {alert.trend > 0 ? '+' : ''}{alert.trend}%
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
                             )}
                           </AlertDescription>
                           {!alert.acknowledged && (
                             <Button
                               size="sm"
                               variant="outline"
-                              className="mt-2"
+                              className="mt-3"
                               onClick={() => handleAcknowledge(alert.id)}
                             >
+                              <CheckCircle className="w-3 h-3 mr-1" />
                               Mark as Reviewed
                             </Button>
                           )}
                           {alert.acknowledged && (
-                            <p className="text-xs text-gray-500 mt-2">
-                              Reviewed on {new Date(alert.acknowledgedAt).toLocaleDateString()}
+                            <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                              <CheckCircle className="w-3 h-3" />
+                              Reviewed {formatTimeAgo(alert.acknowledgedAt)}
                             </p>
                           )}
                         </div>
