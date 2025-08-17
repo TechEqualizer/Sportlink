@@ -13,6 +13,7 @@ import athleteRoutes from './src/routes/athletes.js';
 import videoRoutes from './src/routes/videos.js';
 import teamRoutes from './src/routes/teams.js';
 import authRoutes from './src/routes/auth.js';
+import messageRoutes from './src/routes/messages.js';
 
 // Import middleware
 import { errorHandler } from './src/middleware/errorHandler.js';
@@ -78,6 +79,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/athletes', athleteRoutes);
 app.use('/api/videos', videoRoutes);
 app.use('/api/teams', teamRoutes);
+app.use('/api/messages', messageRoutes);
 
 // API documentation endpoint
 app.get('/api', (req, res) => {
