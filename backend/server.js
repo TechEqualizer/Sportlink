@@ -64,6 +64,9 @@ if (process.env.NODE_ENV === 'development') {
 // Static file serving for uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Serve static files from the frontend build directory
+app.use(express.static(path.join(__dirname, '../dist')));
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({
@@ -94,6 +97,16 @@ app.get('/api', (req, res) => {
     },
     documentation: '/api/docs'
   });
+});
+
+// Catch-all handler: send back React's index.html file for non-API routes
+app.get('*', (req, res) => {
+  // Skip API routes
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
 // Error handling middleware (must be last)
