@@ -59,12 +59,12 @@ export default function PerformanceAlerts() {
       }
     } catch (error) {
       console.error('Error fetching alerts:', error);
+      console.warn('Backend not available, using mock alerts:', error.message);
       toast({
         title: "Error",
         description: `Failed to load performance alerts: ${error.message}`,
         variant: "destructive"
       });
-      console.warn('Backend not available, using mock alerts:', error.message);
       // Use mock data when backend is not available
       const mockAlerts = [
         {
