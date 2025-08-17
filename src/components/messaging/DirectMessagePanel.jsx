@@ -154,16 +154,14 @@ export default function DirectMessagePanel({ onBack }) {
       <CardHeader className="border-b">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {onBack && (
-              <Button variant="ghost" size="icon" onClick={onBack}>
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            )}
+            <Button variant="ghost" size="icon" onClick={onBack}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
             <Avatar>
               <AvatarFallback>{player.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle className="text-lg">Messaging {player.name}</CardTitle>
+              <CardTitle className="text-lg">Direct</CardTitle>
               <p className="text-sm text-gray-500">{player.position}</p>
             </div>
           </div>

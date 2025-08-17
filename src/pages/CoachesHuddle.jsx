@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Send, 
   Users, 
@@ -15,11 +16,15 @@ import {
   BarChart3,
   Filter,
   Search,
-  ChevronRight
+  ChevronRight,
+  Menu,
+  Plus,
+  Megaphone
 } from "lucide-react";
 import BroadcastComposer from "@/components/messaging/BroadcastComposer";
 import DirectMessagePanel from "@/components/messaging/DirectMessagePanel";
 import PerformanceAlerts from "@/components/messaging/PerformanceAlerts";
+import PlayerList from "@/components/messaging/PlayerList";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
@@ -44,17 +49,17 @@ function CoachesHuddleContent() {
   
   // Local UI state
   const [activeTab, setActiveTab] = useState("broadcast");
+  const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
 
   // Mobile responsive state
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [showSidebar, setShowSidebar] = useState(!isMobile);
 
   // Handle window resize
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      setShowSidebar(!mobile);
     };
 
     window.addEventListener('resize', handleResize);
@@ -70,101 +75,147 @@ function CoachesHuddleContent() {
   const handlePlayerSelect = (player) => {
     selectPlayer(player.id);
     setActiveTab("direct");
-    if (isMobile) {
-      setShowSidebar(false);
-    }
+    setShowMobileSidebar(false);
   };
 
+  const navigationItems = [
+    { 
+      id: "broadcast", 
+      label: "Broadcast", 
+      icon: Megaphone, 
+      count: null 
+    },
+    { 
+      id: "direct", 
+      label: "Direct", 
+      icon: MessageSquare, 
+      count: Object.values(unreadCounts).reduce((sum, count) => sum + count, 0) || null 
+    },
+    { 
+      id: "alerts", 
+      label: "Alerts", 
+      icon: AlertCircle, 
+      count: messages.alerts?.length || null 
+    },
+    { 
+      id: "insights", 
+      label: "Insights", 
+      icon: BarChart3, 
+      count: null 
+    }
+  ];
+
   return (
-    <div className="flex flex-col lg:flex-row h-[calc(100vh-4rem)] bg-gray-50">
-      {/* Mobile Header */}
-      {isMobile && (
-        <div className="flex items-center justify-between p-4 bg-white border-b">
-          <h1 className="text-xl font-bold">Coaches Huddle</h1>
+    <div className="flex flex-col h-[calc(100vh-4rem)] bg-gray-50 relative">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 bg-white border-b">
+        <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setShowSidebar(!showSidebar)}
+            onClick={() => setShowMobileSidebar(true)}
+            className="lg:hidden"
           >
-            <Users className="h-5 w-5" />
+            <Menu className="h-5 w-5" />
           </Button>
+          <h1 className="text-xl font-bold">Coaches Huddle</h1>
         </div>
+      </div>
+
+      {/* Mobile Sidebar */}
+      {isMobile && (
+        <>
+          <div 
+            className={cn(
+              "fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity",
+              showMobileSidebar ? "opacity-100" : "opacity-0 pointer-events-none"
+            )}
+            onClick={() => setShowMobileSidebar(false)}
+          />
+          <div className={cn(
+            "fixed inset-y-0 left-0 z-50 w-80 bg-white transform transition-transform",
+            showMobileSidebar ? "translate-x-0" : "-translate-x-full"
+          )}>
+            <div className="p-6 border-b">
+              <h2 className="text-xl font-bold text-gray-900">Coach {user?.name?.split(' ')[0] || 'Alex'}</h2>
+            </div>
+            <div className="p-4 space-y-2">
+              {navigationItems.map(item => (
+                <Button
+                  key={item.id}
+                  variant={activeTab === item.id ? "default" : "ghost"}
+                  className="w-full justify-start h-12"
+                  onClick={() => {
+                    if (item.id === "broadcast") {
+                      setShowBroadcastDialog(true);
+                    } else {
+                      setActiveTab(item.id);
+                    }
+                    setShowMobileSidebar(false);
+                  }}
+                >
+                  <item.icon className="h-5 w-5 mr-3" />
+                  <span className="flex-1 text-left">
+                    {item.id === "broadcast" ? "Team Broadcast" : 
+                     item.id === "direct" ? "Direct Messages" :
+                     item.id === "alerts" ? "Performance Alerts" :
+                     "Team Insights"}
+                  </span>
+                  {item.count > 0 && (
+                    <Badge variant="destructive" className="ml-auto">
+                      {item.count}
+                    </Badge>
+                  )}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </>
       )}
 
-      {/* Sidebar - Player List & Alerts */}
-      <div className={cn(
-        "bg-white border-r transition-all duration-300",
-        isMobile ? "fixed inset-y-0 left-0 z-50 w-80" : "w-80",
-        showSidebar ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-      )}>
-        <div className="p-4 border-b">
-          <h2 className="text-lg font-semibold mb-2">Quick Actions</h2>
-          <div className="space-y-2">
-            <Button 
-              className="w-full justify-start"
-              variant={activeTab === "broadcast" ? "default" : "ghost"}
-              onClick={() => setActiveTab("broadcast")}
-            >
-              <Users className="h-4 w-4 mr-2" />
-              Team Broadcast
-            </Button>
-            <Button 
-              className="w-full justify-start"
-              variant={activeTab === "alerts" ? "default" : "ghost"}
-              onClick={() => setActiveTab("alerts")}
-            >
-              <AlertCircle className="h-4 w-4 mr-2" />
-              Performance Alerts
-              {messages.alerts?.length > 0 && (
-                <Badge variant="destructive" className="ml-auto">
-                  {messages.alerts.length}
-                </Badge>
-              )}
-            </Button>
-            <Button 
-              className="w-full justify-start"
-              variant={activeTab === "insights" ? "default" : "ghost"}
-              onClick={() => setActiveTab("insights")}
-            >
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Team Insights
-            </Button>
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:flex">
+        <div className="w-80 bg-white border-r">
+          <div className="p-6 border-b">
+            <h2 className="text-xl font-bold text-gray-900">Coach {user?.name?.split(' ')[0] || 'Alex'}</h2>
           </div>
-        </div>
-
-        {/* Player List */}
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-medium">Players</h3>
-            <Button variant="ghost" size="icon">
-              <Filter className="h-4 w-4" />
-            </Button>
+          <div className="p-4 space-y-2">
+            {navigationItems.map(item => (
+              <Button
+                key={item.id}
+                variant={activeTab === item.id ? "default" : "ghost"}
+                className="w-full justify-start h-12"
+                onClick={() => {
+                  if (item.id === "broadcast") {
+                    setShowBroadcastDialog(true);
+                  } else {
+                    setActiveTab(item.id);
+                  }
+                }}
+              >
+                <item.icon className="h-5 w-5 mr-3" />
+                <span className="flex-1 text-left">
+                  {item.id === "broadcast" ? "Team Broadcast" : 
+                   item.id === "direct" ? "Direct Messages" :
+                   item.id === "alerts" ? "Performance Alerts" :
+                   "Team Insights"}
+                </span>
+                {item.count > 0 && (
+                  <Badge variant="destructive" className="ml-auto">
+                    {item.count}
+                  </Badge>
+                )}
+              </Button>
+            ))}
           </div>
-          <ScrollArea className="h-[calc(100vh-20rem)]">
-            <PlayerList 
-              onSelectPlayer={handlePlayerSelect}
-              unreadCounts={unreadCounts}
-              selectedPlayer={selectedPlayer}
-            />
-          </ScrollArea>
         </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-          <div className="bg-white border-b px-6 py-3">
-            <TabsList className="grid w-full max-w-md grid-cols-4">
-              <TabsTrigger value="broadcast">Broadcast</TabsTrigger>
-              <TabsTrigger value="direct">Direct</TabsTrigger>
-              <TabsTrigger value="alerts">Alerts</TabsTrigger>
-              <TabsTrigger value="insights">Insights</TabsTrigger>
-            </TabsList>
-          </div>
-
-          <div className="flex-1 overflow-auto">
-            <TabsContent value="broadcast" className="p-6">
-              <BroadcastComposer />
+      <div className="flex-1 flex">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+          <div className="flex-1 overflow-auto pb-16 lg:pb-0">
+            <TabsContent value="broadcast" className="p-6 m-0">
               <div className="mt-6">
                 <h3 className="text-lg font-semibold mb-4">Recent Broadcasts</h3>
                 <div className="space-y-4">
@@ -192,24 +243,58 @@ function CoachesHuddleContent() {
               </div>
             </TabsContent>
 
-            <TabsContent value="direct" className="p-6">
-              {selectedPlayer ? (
-                <DirectMessagePanel />
-              ) : (
-                <Card>
-                  <CardContent className="flex flex-col items-center justify-center h-64">
-                    <User className="h-12 w-12 text-gray-400 mb-3" />
-                    <p className="text-gray-600">Select a player to start messaging</p>
-                  </CardContent>
-                </Card>
-              )}
+            <TabsContent value="direct" className="m-0 flex-1 flex">
+              <div className="flex-1 flex">
+                {/* Player List for Direct Messages */}
+                <div className="w-80 bg-white border-r hidden lg:block">
+                  <div className="p-4 border-b">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold">Direct</h3>
+                      <div className="flex gap-2">
+                        <Button variant="ghost" size="sm" className="text-xs">
+                          All ▼
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-xs">
+                          Players ▼
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-xs">
+                          Groups ▼
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  <ScrollArea className="h-[calc(100vh-12rem)]">
+                    <div className="p-4">
+                      <PlayerList 
+                        onSelectPlayer={handlePlayerSelect}
+                        unreadCounts={unreadCounts}
+                        selectedPlayer={selectedPlayer}
+                      />
+                    </div>
+                  </ScrollArea>
+                </div>
+                
+                {/* Message Panel */}
+                <div className="flex-1">
+                  {selectedPlayer ? (
+                    <DirectMessagePanel />
+                  ) : (
+                    <Card className="h-full">
+                      <CardContent className="flex flex-col items-center justify-center h-full">
+                        <User className="h-12 w-12 text-gray-400 mb-3" />
+                        <p className="text-gray-600">Select a player to start messaging</p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </div>
             </TabsContent>
 
-            <TabsContent value="alerts" className="p-6">
+            <TabsContent value="alerts" className="p-6 m-0">
               <PerformanceAlerts />
             </TabsContent>
 
-            <TabsContent value="insights" className="p-6">
+            <TabsContent value="insights" className="p-6 m-0">
               <Card>
                 <CardHeader>
                   <CardTitle>Team Insights</CardTitle>
@@ -242,13 +327,62 @@ function CoachesHuddleContent() {
         </Tabs>
       </div>
 
-      {/* Mobile Overlay */}
-      {isMobile && showSidebar && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={() => setShowSidebar(false)}
-        />
+      {/* Mobile Bottom Navigation */}
+      {isMobile && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t z-30">
+          <div className="grid grid-cols-4 h-16">
+            {navigationItems.map(item => (
+              <Button
+                key={item.id}
+                variant="ghost"
+                className={cn(
+                  "h-full rounded-none flex flex-col gap-1 relative",
+                  activeTab === item.id && "text-blue-600 bg-blue-50"
+                )}
+                onClick={() => {
+                  if (item.id === "broadcast") {
+                    setShowBroadcastDialog(true);
+                  } else {
+                    setActiveTab(item.id);
+                  }
+                }}
+              >
+                <item.icon className="h-5 w-5" />
+                <span className="text-xs">{item.label}</span>
+                {item.count > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center"
+                  >
+                    {item.count}
+                  </Badge>
+                )}
+              </Button>
+            ))}
+          </div>
+        </div>
       )}
+
+      {/* Floating Action Button for Broadcast (Desktop) */}
+      {!isMobile && (
+        <Button
+          onClick={() => setShowBroadcastDialog(true)}
+          className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700 z-30"
+          size="icon"
+        >
+          <Plus className="w-6 h-6" />
+        </Button>
+      )}
+
+      {/* Broadcast Dialog */}
+      <Dialog open={showBroadcastDialog} onOpenChange={setShowBroadcastDialog}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Send Team Broadcast</DialogTitle>
+          </DialogHeader>
+          <BroadcastComposer onClose={() => setShowBroadcastDialog(false)} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -259,112 +393,5 @@ export default function CoachesHuddle() {
     <MessageProvider>
       <CoachesHuddleContent />
     </MessageProvider>
-  );
-}
-
-// Player List Component
-function PlayerList({ onSelectPlayer, unreadCounts, selectedPlayer }) {
-  const [players, setPlayers] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchPlayers = async () => {
-      try {
-        const response = await fetch('/api/messages/players');
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        
-        const data = await response.json();
-        if (data.success) {
-          setPlayers(data.players);
-        } else {
-          throw new Error(data.error || 'Failed to fetch players');
-        }
-      } catch (error) {
-        console.warn('Error fetching players - using fallback data:', error);
-        // Fallback to mock data if API fails
-        setPlayers([
-          { 
-            id: "1", 
-            name: "John Smith", 
-            position: "PG", 
-            status: "active",
-            avatar: null
-          },
-          { 
-            id: "2", 
-            name: "Sarah Johnson", 
-            position: "SG", 
-            status: "active",
-            avatar: null
-          },
-          { 
-            id: "3", 
-            name: "Mike Williams", 
-            position: "SF", 
-            status: "active",
-            avatar: null
-          },
-          { 
-            id: "4", 
-            name: "Emily Davis", 
-            position: "PF", 
-            status: "active",
-            avatar: null
-          },
-          { 
-            id: "5", 
-            name: "Alex Thompson", 
-            position: "C", 
-            status: "active",
-            avatar: null
-          }
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPlayers();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-32">
-        <div className="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-1">
-      {players.map(player => (
-        <Button
-          key={player.id}
-          variant={selectedPlayer === player.id ? "secondary" : "ghost"}
-          className="w-full justify-start"
-          onClick={() => onSelectPlayer(player)}
-        >
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center">
-              <div className="w-2 h-2 rounded-full mr-2" 
-                style={{ backgroundColor: player.status === 'active' ? '#10b981' : '#6b7280' }}
-              />
-              <div className="text-left">
-                <div className="font-medium">{player.name}</div>
-                <div className="text-xs text-gray-500">{player.position}</div>
-              </div>
-            </div>
-            {unreadCounts[player.id] > 0 && (
-              <Badge variant="destructive" className="ml-2">
-                {unreadCounts[player.id]}
-              </Badge>
-            )}
-          </div>
-        </Button>
-      ))}
-    </div>
   );
 }

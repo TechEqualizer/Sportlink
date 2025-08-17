@@ -16,7 +16,7 @@ import {
   Megaphone
 } from "lucide-react";
 
-export default function BroadcastComposer() {
+export default function BroadcastComposer({ onClose }) {
   const { toast } = useToast();
   const { sendBroadcast, loading } = useMessages();
   const [content, setContent] = useState('');
@@ -56,6 +56,11 @@ export default function BroadcastComposer() {
       setContent('');
       setCharCount(0);
       setPriority('normal');
+      
+      // Close dialog if callback provided
+      if (onClose) {
+        onClose();
+      }
     } catch (error) {
       // Error handling is done in the context
       console.error('Broadcast error:', error);
@@ -178,23 +183,30 @@ export default function BroadcastComposer() {
             <Users className="h-4 w-4" />
             <span>Will reach all team members instantly</span>
           </div>
-          <Button 
-            onClick={handleSend}
-            disabled={!content.trim() || isSending}
-            className="min-w-[120px]"
-          >
-            {isSending ? (
-              <>
-                <Clock className="h-4 w-4 mr-2 animate-spin" />
-                Sending...
-              </>
-            ) : (
-              <>
-                <Send className="h-4 w-4 mr-2" />
-                Send Broadcast
-              </>
+          <div className="flex gap-2">
+            {onClose && (
+              <Button variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
             )}
-          </Button>
+            <Button 
+              onClick={handleSend}
+              disabled={!content.trim() || isSending}
+              className="min-w-[120px]"
+            >
+              {isSending ? (
+                <>
+                  <Clock className="h-4 w-4 mr-2 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Send Broadcast
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
