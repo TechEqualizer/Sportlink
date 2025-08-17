@@ -26,6 +26,11 @@ export default function PerformanceAlerts() {
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(false);
 
+  // API Base URL - same configuration as MessageContext
+  const API_BASE = process.env.NODE_ENV === 'production' 
+    ? '/api' 
+    : 'http://localhost:3001/api';
+
   useEffect(() => {
     fetchAlerts();
   }, []);
@@ -33,8 +38,14 @@ export default function PerformanceAlerts() {
   const fetchAlerts = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/messages/alerts');
+      const response = await fetch(`${API_BASE}/messages/alerts`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
+      
       if (data.success) {
         setAlerts(data.alerts || []);
       } else {
@@ -49,7 +60,7 @@ export default function PerformanceAlerts() {
       console.error('Error fetching alerts:', error);
       toast({
         title: "Error",
-        description: "Failed to load performance alerts",
+        description: `Failed to load performance alerts: ${error.message}`,
         variant: "destructive"
       });
     } finally {
@@ -59,11 +70,20 @@ export default function PerformanceAlerts() {
 
   const handleAcknowledge = async (alertId) => {
     try {
-      const response = await fetch(`/api/messages/alerts/${alertId}/acknowledge`, {
-        method: 'PATCH'
+      const response = await fetch(`${API_BASE}/messages/alerts/${alertId}/acknowledge`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       
-      if (response.ok) {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
         setAlerts(prev => prev.map(alert => 
           alert.id === alertId 
             ? { ...alert, acknowledged: true, acknowledgedAt: new Date() }
@@ -73,12 +93,14 @@ export default function PerformanceAlerts() {
           title: "Alert Acknowledged",
           description: "The alert has been marked as reviewed"
         });
+      } else {
+        throw new Error(data.error || 'Failed to acknowledge alert');
       }
     } catch (error) {
       console.error('Failed to acknowledge alert:', error);
       toast({
         title: "Error",
-        description: "Failed to acknowledge alert",
+        description: `Failed to acknowledge alert: ${error.message}`,
         variant: "destructive"
       });
     }
