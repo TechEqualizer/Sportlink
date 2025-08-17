@@ -38,14 +38,9 @@ export default function PerformanceAlerts() {
   const fetchAlerts = async () => {
     setLoading(true);
     try {
-      
-      // Check if the response is ok
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
       const response = await fetch(`${API_BASE}/athletes/performance-alerts`);
       
+      // Check if the response is ok
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -67,6 +62,8 @@ export default function PerformanceAlerts() {
       toast({
         title: "Error",
         description: `Failed to load performance alerts: ${error.message}`,
+        variant: "destructive"
+      });
       console.warn('Backend not available, using mock alerts:', error.message);
       // Use mock data when backend is not available
       const mockAlerts = [
@@ -107,7 +104,6 @@ export default function PerformanceAlerts() {
         }
       ];
       setAlerts(mockAlerts);
-      setError(null); // Clear any previous errors
     } finally {
       setLoading(false);
     }
