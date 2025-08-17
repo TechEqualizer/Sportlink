@@ -38,7 +38,7 @@ export default function PerformanceAlerts() {
   const fetchAlerts = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/messages/alerts`);
+      const response = await fetch(`${API_BASE}/athletes/performance-alerts`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -47,7 +47,7 @@ export default function PerformanceAlerts() {
       const data = await response.json();
       
       if (data.success) {
-        setAlerts(data.alerts || []);
+        setAlerts(data.data || []);
       } else {
         console.error('Failed to fetch alerts:', data.error);
         toast({

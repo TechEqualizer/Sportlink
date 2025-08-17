@@ -7,7 +7,8 @@ import {
   deleteAthlete,
   getAthleteStatistics,
   getAthleteVideos,
-  searchAthletes
+  searchAthletes,
+  getPerformanceAlerts
 } from '../controllers/athleteController.js';
 
 const router = express.Router();
@@ -18,6 +19,7 @@ router.route('/')
   .post(createAthlete);  // POST /api/athletes - Create new athlete
 
 router.get('/search', searchAthletes); // GET /api/athletes/search - Search athletes for autocomplete
+router.get('/performance-alerts', getPerformanceAlerts); // GET /api/athletes/performance-alerts
 
 router.route('/:id')
   .get(getAthlete)       // GET /api/athletes/:id - Get single athlete

@@ -252,3 +252,60 @@ export const searchAthletes = async (req, res, next) => {
     next(error);
   }
 };
+
+// Get performance alerts
+export const getPerformanceAlerts = async (req, res, next) => {
+  try {
+    // Mock performance alerts data - replace with actual data fetching logic
+    const mockAlerts = [
+      {
+        id: 1,
+        athlete_id: 1,
+        athlete_name: "Marcus Thompson",
+        alert_type: "grade_drop",
+        severity: "warning",
+        message: "GPA dropped below 3.0 threshold",
+        date_created: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        is_read: false
+      },
+      {
+        id: 2,
+        athlete_id: 2,
+        athlete_name: "Sarah Johnson",
+        alert_type: "performance_improvement",
+        severity: "positive",
+        message: "Shooting percentage improved by 15% over last 5 games",
+        date_created: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        is_read: false
+      },
+      {
+        id: 3,
+        athlete_id: 3,
+        athlete_name: "David Martinez",
+        alert_type: "injury_risk",
+        severity: "critical",
+        message: "High load training detected - recommend rest period",
+        date_created: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+        is_read: true
+      },
+      {
+        id: 4,
+        athlete_id: 4,
+        athlete_name: "Emma Wilson",
+        alert_type: "milestone_achieved",
+        severity: "positive",
+        message: "Reached personal best in 40-yard dash: 4.2 seconds",
+        date_created: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+        is_read: false
+      }
+    ];
+
+    res.json({
+      success: true,
+      data: mockAlerts,
+      total: mockAlerts.length
+    });
+  } catch (error) {
+    next(error);
+  }
+};
