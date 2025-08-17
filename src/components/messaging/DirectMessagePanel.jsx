@@ -32,13 +32,47 @@ export default function DirectMessagePanel({ onBack }) {
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Get mock player data - in real app this would come from a players context/API
-  const player = selectedPlayer ? {
-    id: selectedPlayer,
-    name: "Player " + selectedPlayer,
-    position: "PG",
-    status: "active"
-  } : null;
+  // Player data state
+  const [player, setPlayer] = useState(null);
+  const [loadingPlayer, setLoadingPlayer] = useState(false);
+
+  // Fetch player data when selectedPlayer changes
+  useEffect(() => {
+    if (!selectedPlayer) {
+      setPlayer(null);
+      return;
+    }
+
+    const fetchPlayerData = async () => {
+      setLoadingPlayer(true);
+      try {
+        const response = await fetch('/api/messages/players');
+        const data = await response.json();
+        if (data.success) {
+          const foundPlayer = data.players.find(p => p.id === selectedPlayer);
+          setPlayer(foundPlayer || {
+            id: selectedPlayer,
+            name: `Player ${selectedPlayer}`,
+            position: "Unknown",
+            status: "active"
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch player data:', error);
+        // Fallback to basic player info
+        setPlayer({
+          id: selectedPlayer,
+          name: `Player ${selectedPlayer}`,
+          position: "Unknown",
+          status: "active"
+        });
+      } finally {
+        setLoadingPlayer(false);
+      }
+    };
+
+    fetchPlayerData();
+  }, [selectedPlayer]);
 
   // Get messages for selected player
   const playerMessages = selectedPlayer ? (messages.direct?.[selectedPlayer] || []) : [];

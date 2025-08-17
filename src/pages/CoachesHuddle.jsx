@@ -264,18 +264,49 @@ export default function CoachesHuddle() {
 
 // Player List Component
 function PlayerList({ onSelectPlayer, unreadCounts, selectedPlayer }) {
-  const players = [
-    { id: "1", name: "John Smith", position: "PG", status: "active" },
-    { id: "2", name: "Sarah Johnson", position: "SG", status: "active" },
-    { id: "3", name: "Mike Williams", position: "C", status: "inactive" }
-  ];
+  const [players, setPlayers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPlayers = async () => {
+      try {
+        const response = await fetch('/api/messages/players');
+        const data = await response.json();
+        if (data.success) {
+          setPlayers(data.players);
+        } else {
+          console.error('Failed to fetch players:', data.error);
+        }
+      } catch (error) {
+        console.error('Error fetching players:', error);
+        // Fallback to mock data if API fails
+        setPlayers([
+          { id: "1", name: "John Smith", position: "PG", status: "active" },
+          { id: "2", name: "Sarah Johnson", position: "SG", status: "active" },
+          { id: "3", name: "Mike Williams", position: "SF", status: "active" }
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlayers();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-32">
+        <div className="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-1">
       {players.map(player => (
         <Button
           key={player.id}
-          variant={selectedPlayer?.id === player.id ? "secondary" : "ghost"}
+          variant={selectedPlayer === player.id ? "secondary" : "ghost"}
           className="w-full justify-start"
           onClick={() => onSelectPlayer(player)}
         >
