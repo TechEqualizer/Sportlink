@@ -1,7 +1,6 @@
 import PerformanceAlert from '../models/PerformanceAlert.js';
 import AlertRule from '../models/AlertRule.js';
 import Message from '../models/Message.js';
-import { Op } from 'sequelize';
 
 // Get performance alerts for coach dashboard
 export const getAlerts = async (req, res) => {
@@ -11,35 +10,18 @@ export const getAlerts = async (req, res) => {
       alertType,
       severity,
       acknowledged,
-      since,
-      until,
-      limit = 20,
-      offset = 0
+      limit = 20
     } = req.query;
 
-    const where = {};
+    // Build filters object for our raw SQL model
+    const filters = {};
+    if (playerId) filters.playerId = playerId;
+    if (alertType) filters.alertType = alertType;
+    if (severity) filters.severity = severity;
+    if (acknowledged !== undefined) filters.acknowledged = acknowledged === 'true';
+    if (limit) filters.limit = parseInt(limit);
 
-    if (playerId) where.playerId = playerId;
-    if (alertType) where.alertType = alertType;
-    if (severity) where.severity = severity;
-    if (acknowledged !== undefined) where.acknowledged = acknowledged === 'true';
-
-    if (since || until) {
-      where.createdAt = {};
-      if (since) where.createdAt[Op.gte] = new Date(since);
-      if (until) where.createdAt[Op.lte] = new Date(until);
-    }
-
-    const alerts = await PerformanceAlert.findAll({
-      where,
-      order: [
-        ['acknowledged', 'ASC'],
-        ['severity', 'DESC'],
-        ['createdAt', 'DESC']
-      ],
-      limit: parseInt(limit),
-      offset: parseInt(offset)
-    });
+    const alerts = await PerformanceAlert.findAll(filters);
 
     // Group alerts by player for easier consumption
     const alertsByPlayer = {};
@@ -54,89 +36,69 @@ export const getAlerts = async (req, res) => {
       success: true,
       alerts,
       alertsByPlayer,
-      pagination: {
-        limit: parseInt(limit),
-        offset: parseInt(offset),
-        total: await PerformanceAlert.count({ where })
-      }
+      total: alerts.length
     });
   } catch (error) {
     console.error('Get alerts error:', error);
-    res.status(500).json({ error: 'Failed to retrieve alerts' });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to retrieve alerts',
+      message: error.message 
+    });
   }
 };
 
 // Get alert summary for quick dashboard view
 export const getAlertSummary = async (req, res) => {
   try {
+    // Get all alerts for summary calculation
+    const allAlerts = await PerformanceAlert.findAll();
+    
     const summary = {
-      total: 0,
-      unacknowledged: 0,
-      bySeverity: {},
+      total: allAlerts.length,
+      unacknowledged: allAlerts.filter(a => !a.acknowledged).length,
+      bySeverity: {
+        critical: allAlerts.filter(a => a.severity === 'critical' && !a.acknowledged).length,
+        warning: allAlerts.filter(a => a.severity === 'warning' && !a.acknowledged).length,
+        info: allAlerts.filter(a => a.severity === 'info' && !a.acknowledged).length
+      },
       byType: {},
-      recentCritical: [],
+      recentCritical: allAlerts.filter(a => a.severity === 'critical' && !a.acknowledged).slice(0, 5),
       atRiskPlayers: []
     };
 
-    // Get counts by severity
-    const severityCounts = await PerformanceAlert.findAll({
-      attributes: [
-        'severity',
-        [sequelize.fn('COUNT', sequelize.col('id')), 'count']
-      ],
-      where: { acknowledged: false },
-      group: ['severity']
+    // Count by alert type
+    const typeCounts = {};
+    allAlerts.forEach(alert => {
+      if (!alert.acknowledged) {
+        typeCounts[alert.alertType] = (typeCounts[alert.alertType] || 0) + 1;
+      }
+    });
+    summary.byType = typeCounts;
+
+    // Find at-risk players (multiple alerts)
+    const playerAlertCounts = {};
+    allAlerts.forEach(alert => {
+      if (!alert.acknowledged) {
+        if (!playerAlertCounts[alert.playerId]) {
+          playerAlertCounts[alert.playerId] = { count: 0, maxSeverity: 'info' };
+        }
+        playerAlertCounts[alert.playerId].count++;
+        if (alert.severity === 'critical') {
+          playerAlertCounts[alert.playerId].maxSeverity = 'critical';
+        } else if (alert.severity === 'warning' && playerAlertCounts[alert.playerId].maxSeverity !== 'critical') {
+          playerAlertCounts[alert.playerId].maxSeverity = 'warning';
+        }
+      }
     });
 
-    severityCounts.forEach(row => {
-      summary.bySeverity[row.severity] = parseInt(row.dataValues.count);
-      summary.unacknowledged += parseInt(row.dataValues.count);
-    });
-
-    // Get counts by type
-    const typeCounts = await PerformanceAlert.findAll({
-      attributes: [
-        'alertType',
-        [sequelize.fn('COUNT', sequelize.col('id')), 'count']
-      ],
-      where: { acknowledged: false },
-      group: ['alertType']
-    });
-
-    typeCounts.forEach(row => {
-      summary.byType[row.alertType] = parseInt(row.dataValues.count);
-    });
-
-    // Get recent critical alerts
-    summary.recentCritical = await PerformanceAlert.findAll({
-      where: {
-        severity: 'critical',
-        acknowledged: false
-      },
-      order: [['createdAt', 'DESC']],
-      limit: 5
-    });
-
-    // Get at-risk players (players with multiple unacknowledged alerts)
-    const atRiskData = await PerformanceAlert.findAll({
-      attributes: [
-        'playerId',
-        [sequelize.fn('COUNT', sequelize.col('id')), 'alertCount'],
-        [sequelize.fn('MAX', sequelize.col('severity')), 'maxSeverity']
-      ],
-      where: { acknowledged: false },
-      group: ['playerId'],
-      having: sequelize.where(sequelize.fn('COUNT', sequelize.col('id')), '>=', 2),
-      order: [[sequelize.fn('COUNT', sequelize.col('id')), 'DESC']]
-    });
-
-    summary.atRiskPlayers = atRiskData.map(row => ({
-      playerId: row.playerId,
-      alertCount: parseInt(row.dataValues.alertCount),
-      maxSeverity: row.dataValues.maxSeverity
-    }));
-
-    summary.total = await PerformanceAlert.count();
+    summary.atRiskPlayers = Object.entries(playerAlertCounts)
+      .filter(([_, data]) => data.count >= 2)
+      .map(([playerId, data]) => ({
+        playerId,
+        alertCount: data.count,
+        maxSeverity: data.maxSeverity
+      }));
 
     res.json({
       success: true,
@@ -144,7 +106,11 @@ export const getAlertSummary = async (req, res) => {
     });
   } catch (error) {
     console.error('Get alert summary error:', error);
-    res.status(500).json({ error: 'Failed to retrieve alert summary' });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to retrieve alert summary',
+      message: error.message 
+    });
   }
 };
 
@@ -154,16 +120,13 @@ export const acknowledgeAlert = async (req, res) => {
     const { id } = req.params;
     const userId = req.user?.id || 'coach_1';
 
-    const alert = await PerformanceAlert.findByPk(id);
+    const alert = await PerformanceAlert.acknowledge(id, userId);
     if (!alert) {
-      return res.status(404).json({ error: 'Alert not found' });
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Alert not found' 
+      });
     }
-
-    await alert.update({
-      acknowledged: true,
-      acknowledgedBy: userId,
-      acknowledgedAt: new Date()
-    });
 
     res.json({
       success: true,
@@ -171,7 +134,11 @@ export const acknowledgeAlert = async (req, res) => {
     });
   } catch (error) {
     console.error('Acknowledge alert error:', error);
-    res.status(500).json({ error: 'Failed to acknowledge alert' });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to acknowledge alert',
+      message: error.message 
+    });
   }
 };
 
@@ -182,16 +149,17 @@ export const createAlert = async (req, res) => {
       playerId,
       alertType,
       severity = 'info',
-      metric,
+      metricName,
       currentValue,
       thresholdValue,
       message,
       actionRequired = false
     } = req.body;
 
-    if (!playerId || !alertType || !metric || !message) {
+    if (!playerId || !alertType || !message) {
       return res.status(400).json({ 
-        error: 'Required fields: playerId, alertType, metric, message' 
+        success: false,
+        error: 'Required fields: playerId, alertType, message' 
       });
     }
 
@@ -199,11 +167,10 @@ export const createAlert = async (req, res) => {
       playerId,
       alertType,
       severity,
-      metric,
-      currentValue,
-      thresholdValue,
       message,
-      actionRequired
+      metricName,
+      currentValue,
+      thresholdValue
     });
 
     // Also create a message for the player if it's actionRequired
@@ -217,7 +184,7 @@ export const createAlert = async (req, res) => {
         metadata: {
           alertId: alert.id,
           alertType,
-          metric
+          metricName
         }
       });
     }
@@ -228,17 +195,18 @@ export const createAlert = async (req, res) => {
     });
   } catch (error) {
     console.error('Create alert error:', error);
-    res.status(500).json({ error: 'Failed to create alert' });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to create alert',
+      message: error.message 
+    });
   }
 };
 
 // Get alert rules
 export const getAlertRules = async (req, res) => {
   try {
-    const rules = await AlertRule.findAll({
-      where: { isActive: true },
-      order: [['severity', 'DESC'], ['name', 'ASC']]
-    });
+    const rules = await AlertRule.findAll({ isActive: true });
 
     res.json({
       success: true,
@@ -246,7 +214,11 @@ export const getAlertRules = async (req, res) => {
     });
   } catch (error) {
     console.error('Get alert rules error:', error);
-    res.status(500).json({ error: 'Failed to retrieve alert rules' });
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to retrieve alert rules',
+      message: error.message 
+    });
   }
 };
 
@@ -255,63 +227,50 @@ export const upsertAlertRule = async (req, res) => {
   try {
     const {
       name,
-      description,
       metricName,
       comparison,
       thresholdValue,
-      secondaryThreshold,
-      timeWindow = 7,
       alertType,
       severity = 'warning',
-      alertMessage,
-      checkFrequency = 'daily',
-      appliesTo = 'all',
-      specificPlayers = []
+      alertMessage
     } = req.body;
 
     if (!name || !metricName || !comparison || !thresholdValue || !alertType || !alertMessage) {
       return res.status(400).json({
+        success: false,
         error: 'Required fields: name, metricName, comparison, thresholdValue, alertType, alertMessage'
       });
     }
 
-    const [rule, created] = await AlertRule.upsert({
+    const rule = await AlertRule.create({
       name,
-      description,
       metricName,
       comparison,
       thresholdValue,
-      secondaryThreshold,
-      timeWindow,
       alertType,
       severity,
-      alertMessage,
-      checkFrequency,
-      appliesTo,
-      specificPlayers,
-      isActive: true
-    }, {
-      returning: true
+      alertMessage
     });
 
     res.json({
       success: true,
       rule,
-      created
+      created: true
     });
   } catch (error) {
     console.error('Upsert alert rule error:', error);
-    res.status(500).json({ error: 'Failed to save alert rule' });
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to save alert rule',
+      message: error.message 
+    });
   }
 };
 
 // Run alert checks (called by cron job or manually)
 export const runAlertChecks = async (req, res) => {
   try {
-    const activeRules = await AlertRule.findAll({
-      where: { isActive: true }
-    });
-
+    const activeRules = await AlertRule.findAll({ isActive: true });
     const alertsGenerated = [];
 
     for (const rule of activeRules) {
@@ -326,11 +285,10 @@ export const runAlertChecks = async (req, res) => {
             playerId: player.id,
             alertType: rule.alertType,
             severity: rule.severity,
-            metric: rule.metricName,
+            metricName: rule.metricName,
             currentValue: metricValue,
             thresholdValue: rule.thresholdValue,
-            message: formatAlertMessage(rule.alertMessage, player, metricValue),
-            actionRequired: rule.severity === 'critical'
+            message: formatAlertMessage(rule.alertMessage, player, metricValue)
           });
           
           alertsGenerated.push(alert);
@@ -345,7 +303,11 @@ export const runAlertChecks = async (req, res) => {
     });
   } catch (error) {
     console.error('Run alert checks error:', error);
-    res.status(500).json({ error: 'Failed to run alert checks' });
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to run alert checks',
+      message: error.message 
+    });
   }
 };
 

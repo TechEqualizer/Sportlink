@@ -22,15 +22,40 @@ import { cn } from "@/lib/utils";
 
 export default function PerformanceAlerts() {
   const { toast } = useToast();
-  const { messages, loadAlerts, loading } = useMessages();
+  const [alerts, setAlerts] = useState([]);
   const [filter, setFilter] = useState('all');
-
-  // Get alerts from context
-  const alerts = messages.alerts || [];
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    loadAlerts();
-  }, [loadAlerts]);
+    fetchAlerts();
+  }, []);
+
+  const fetchAlerts = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/messages/alerts');
+      const data = await response.json();
+      if (data.success) {
+        setAlerts(data.alerts || []);
+      } else {
+        console.error('Failed to fetch alerts:', data.error);
+        toast({
+          title: "Error",
+          description: data.error || "Failed to load performance alerts",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching alerts:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load performance alerts",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAcknowledge = async (alertId) => {
     try {
@@ -48,7 +73,6 @@ export default function PerformanceAlerts() {
           title: "Alert Acknowledged",
           description: "The alert has been marked as reviewed"
         });
-        if (onAcknowledge) onAcknowledge();
       }
     } catch (error) {
       console.error('Failed to acknowledge alert:', error);
@@ -108,7 +132,7 @@ export default function PerformanceAlerts() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={loadAlerts}
+              onClick={fetchAlerts}
               disabled={loading}
             >
               <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
@@ -178,7 +202,7 @@ export default function PerformanceAlerts() {
 
       {/* Alerts List */}
       <ScrollArea className="h-[500px]">
-        {isLoading ? (
+        {loading ? (
           <div className="flex justify-center items-center h-32">
             <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full" />
           </div>
