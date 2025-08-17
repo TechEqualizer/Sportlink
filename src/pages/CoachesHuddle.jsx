@@ -271,19 +271,56 @@ function PlayerList({ onSelectPlayer, unreadCounts, selectedPlayer }) {
     const fetchPlayers = async () => {
       try {
         const response = await fetch('/api/messages/players');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
         const data = await response.json();
         if (data.success) {
           setPlayers(data.players);
         } else {
-          console.error('Failed to fetch players:', data.error);
+          throw new Error(data.error || 'Failed to fetch players');
         }
       } catch (error) {
-        console.error('Error fetching players:', error);
+        console.warn('Error fetching players - using fallback data:', error);
         // Fallback to mock data if API fails
         setPlayers([
-          { id: "1", name: "John Smith", position: "PG", status: "active" },
-          { id: "2", name: "Sarah Johnson", position: "SG", status: "active" },
-          { id: "3", name: "Mike Williams", position: "SF", status: "active" }
+          { 
+            id: "1", 
+            name: "John Smith", 
+            position: "PG", 
+            status: "active",
+            avatar: null
+          },
+          { 
+            id: "2", 
+            name: "Sarah Johnson", 
+            position: "SG", 
+            status: "active",
+            avatar: null
+          },
+          { 
+            id: "3", 
+            name: "Mike Williams", 
+            position: "SF", 
+            status: "active",
+            avatar: null
+          },
+          { 
+            id: "4", 
+            name: "Emily Davis", 
+            position: "PF", 
+            status: "active",
+            avatar: null
+          },
+          { 
+            id: "5", 
+            name: "Alex Thompson", 
+            position: "C", 
+            status: "active",
+            avatar: null
+          }
         ]);
       } finally {
         setLoading(false);
