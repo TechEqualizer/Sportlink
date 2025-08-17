@@ -163,7 +163,7 @@ export default function DirectMessagePanel({ onBack }) {
               <AvatarFallback>{player.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle className="text-lg">{player.name}</CardTitle>
+              <CardTitle className="text-lg">Messaging {player.name}</CardTitle>
               <p className="text-sm text-gray-500">{player.position}</p>
             </div>
           </div>
