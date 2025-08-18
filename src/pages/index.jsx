@@ -5,6 +5,7 @@ import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
+const Home = lazy(() => import("./Home"));
 const Athletes = lazy(() => import("./Athletes"));
 const Statistics = lazy(() => import("./Statistics"));
 const PlayerProfile = lazy(() => import("./PlayerProfile"));
@@ -16,6 +17,7 @@ const PlayerDashboard = lazy(() => import("./PlayerDashboard"));
 const CoachesHuddle = lazy(() => import("./CoachesHuddle"));
 
 const PAGES = {
+    Home: Home,
     Athletes: Athletes,
     Statistics: Statistics,
     PlayerProfile: PlayerProfile,
@@ -50,7 +52,8 @@ function PagesContent() {
             <ErrorBoundary>
                 <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
                     <Routes>            
-                        <Route path="/" element={<Athletes />} />
+                        <Route path="/" element={<Home />} />
+                        <Route path="/Home" element={<Home />} />
                         <Route path="/Athletes" element={<Athletes />} />
                         <Route path="/Statistics" element={<Statistics />} />
                         <Route path="/PlayerProfile" element={<PlayerProfile />} />

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Menu, Users, BarChart3, Home, Settings, LogOut, User, Trophy, Target, MessageSquare } from "lucide-react";
+import { Menu, Users, BarChart3, Home, Settings, LogOut, User, Trophy, Target, MessageSquare, MoreHorizontal } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -30,6 +30,29 @@ export default function Layout({ children, currentPageName }) {
   const { user, logout } = useAuth();
 
   const navigationItems = [
+    {
+      title: "Home",
+      url: "/",
+      icon: Home,
+    },
+    {
+      title: "DMs",
+      url: createPageUrl("CoachesHuddle"),
+      icon: MessageSquare,
+    },
+    {
+      title: "Game Stats", 
+      url: "/performance-review",
+      icon: BarChart3,
+    },
+    {
+      title: "More",
+      url: createPageUrl("TeamSettings"),
+      icon: MoreHorizontal,
+    },
+  ];
+
+  const desktopNavigationItems = [
     {
       title: "Athletes",
       url: createPageUrl("Athletes"),
@@ -75,7 +98,20 @@ export default function Layout({ children, currentPageName }) {
         <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16 md:h-20">
-              <div className="flex-shrink-0 flex items-center min-w-0">
+              <div className="flex-shrink-0 flex items-center min-w-0 md:hidden">
+                {/* Mobile: Show only user avatar */}
+                <div className="w-10 h-10 bg-team-primary rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-medium">
+                    {user?.name?.charAt(0)?.toUpperCase() || 'C'}
+                  </span>
+                </div>
+                <div className="ml-3 min-w-0 flex-1">
+                  <h1 className="text-lg font-bold text-high-contrast truncate">Home</h1>
+                </div>
+              </div>
+
+              {/* Desktop: Show team logo and info */}
+              <div className="hidden md:flex flex-shrink-0 items-center min-w-0">
                 <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg flex items-center justify-center bg-team-primary flex-shrink-0">
                   {team?.logo_url ? (
                     <OptimizedImage 
@@ -106,8 +142,8 @@ export default function Layout({ children, currentPageName }) {
                 )}
 
                 {!isPlayerProfile && (
-                  <nav className="hidden md:flex space-x-2 lg:space-x-4">
-                    {navigationItems.map((item) => (
+                  <nav className="hidden lg:flex space-x-2 lg:space-x-4">
+                    {desktopNavigationItems.map((item) => (
                       <Link
                         key={item.title}
                         to={item.url}
@@ -206,7 +242,27 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </header>
 
-        <main className="flex-1 px-4 py-6 md:px-6 lg:px-8">
+        {/* Mobile Bottom Navigation */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 md:hidden">
+          <div className="grid grid-cols-4 h-16">
+            {navigationItems.map((item) => (
+              <Link
+                key={item.title}
+                to={item.url}
+                className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+                  location.pathname === item.url
+                    ? "text-team-primary bg-team-primary-light"
+                    : "text-gray-500 hover:text-team-primary"
+                }`}
+              >
+                <item.icon className="w-5 h-5" />
+                <span className="text-xs font-medium">{item.title}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <main className="flex-1 px-0 py-0 md:px-6 lg:px-8 md:py-6">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
