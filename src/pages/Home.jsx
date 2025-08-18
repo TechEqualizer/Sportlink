@@ -80,21 +80,6 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header with single profile */}
-      <div className="bg-white border-b border-gray-200 px-4 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Avatar className="w-10 h-10">
-              <AvatarFallback className="bg-team-primary text-white font-medium">
-                {user?.name?.charAt(0)?.toUpperCase() || 'C'}
-              </AvatarFallback>
-            </Avatar>
-            <h1 className="text-xl font-bold text-gray-900">Home</h1>
-          </div>
-          <Button variant="ghost" size="icon">
-            <MoreHorizontal className="w-5 h-5" />
-          </Button>
-        </div>
-      </div>
 
       <div className="px-4 py-6 space-y-6">
         {/* Coach Profile Section */}
